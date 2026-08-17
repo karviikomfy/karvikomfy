@@ -14,14 +14,12 @@
         button, input, textarea, .p-price, .p-badge, .nav-item span, .wa-text, .cat-btn, .font-inter { font-family: 'Inter', 'Segoe UI', sans-serif; }
         .hidden { display: none !important; }
 
-        /* TRANSLATE KILLER */
         .goog-te-banner-frame, .skiptranslate iframe, .goog-tooltip, .goog-te-gadget-icon, .goog-te-gadget-simple img { display: none !important; }
         body, html { top: 0px !important; }
         #google_translate_element { display: inline-block; }
         .goog-te-gadget-simple { background-color: transparent !important; border: 1px solid var(--border) !important; border-radius: 20px !important; padding: 4px 12px !important; display: flex !important; align-items: center !important; cursor: pointer; height: 28px; box-sizing: border-box; }
         .goog-te-gadget-simple span { color: var(--text) !important; font-size: 0.75rem !important; font-family: 'Inter', sans-serif !important; font-weight: 600 !important; border: none !important; }
         
-        /* PREMIUM GLASSMORPHISM HEADER */
         header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: var(--navy); padding: 15px 12px; position: sticky; top: 0; z-index: 2000; border-bottom: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.02); transition: background 0.3s; }
         [data-theme="dark"] header { background: rgba(30, 41, 43, 0.85); }
         .h-row { display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 0 auto; }
@@ -45,7 +43,6 @@
         .slide img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
         @media (min-width: 768px) { .slide { min-width: 48%; height: 250px; } }
 
-        /* ULTRA PREMIUM PRODUCT GRID */
         .cat-btn { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); padding: 8px 20px; border-radius: 30px; font-weight: 600; white-space: nowrap; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.02);}
         .cat-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(216, 27, 96, 0.3);}
         .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; background: var(--bg); max-width: 1200px; margin: 0 auto;}
@@ -73,7 +70,6 @@
         input, textarea { width: 100%; padding: 15px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; font-size: 0.95rem; background: var(--card-bg); color: var(--text); font-family: 'Inter', sans-serif; transition: border-color 0.3s;}
         input:focus, textarea:focus { outline: none; border-color: var(--primary); }
         
-        /* PREMIUM GLASSMORPHISM BOTTOM NAV (4 ITEMS) */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.90); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); box-shadow: 0 -5px 25px rgba(0,0,0,0.04); display: flex; justify-content: space-around; align-items: center; z-index: 5000; border-top: 1px solid var(--border); padding: 12px 10px 20px 10px; box-sizing: border-box; }
         [data-theme="dark"] .bottom-nav { background: rgba(30, 41, 43, 0.90); }
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; color: #94a3b8; cursor: pointer; transition: all 0.3s ease; position: relative; }
@@ -100,7 +96,6 @@
         #lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center; cursor: zoom-out; backdrop-filter: blur(5px);}
         #lightbox img { max-width: 95%; max-height: 95%; object-fit: contain; }
 
-        /* LIVE ORDER TRACKING TIMELINE */
         .track-box { background: var(--card-bg); padding: 25px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
         .track-header { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 25px; }
         .timeline { display: flex; justify-content: space-between; position: relative; margin: 10px 0 20px 0; }
@@ -112,7 +107,6 @@
         .timeline-label { font-size: 0.65rem; color: #888; text-transform: uppercase; font-weight: 600; text-align: center;}
         .timeline-step.completed .timeline-label, .timeline-step.active .timeline-label { color: var(--text); }
 
-        /* PINCODE CHECKER */
         .pin-checker { background: var(--bg); border: 1px solid var(--border); padding: 15px; border-radius: 12px; margin-bottom: 25px; }
         .pin-input-group { display: flex; gap: 10px; margin-top: 10px; }
         .pin-input-group input { margin-bottom: 0; padding: 12px; }
@@ -283,7 +277,6 @@
     </div>
 </div>
 
-<!-- DEDICATED ORDERS TAB -->
 <div id="orders-view" class="hidden">
     <h2 style="color:var(--text); margin-top:10px; font-family: 'Playfair Display', serif; font-size: 1.8rem;">Live Tracking</h2>
     <p style="font-size:0.95rem; color:#777; font-family: 'Inter', sans-serif; margin-bottom: 25px;">Track your premium travel comfort.</p>
@@ -313,7 +306,6 @@
     <span class="wa-text">Chat with us</span>
 </a>
 
-<!-- BOTTOM NAV (4 ITEMS) -->
 <div class="bottom-nav font-inter">
     <div class="nav-item active" onclick="activateNav(this); restoreHome();">
         <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Discover</span>
@@ -340,7 +332,7 @@
     // @ts-nocheck
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, addDoc, query, where, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = { apiKey: "AIzaSyBw4wX5g8n314AYy1btlYxblfFNsO6tKQ0", authDomain: "karvikomfy-d4d0d.firebaseapp.com", projectId: "karvikomfy-d4d0d", storageBucket: "karvikomfy-d4d0d.firebasestorage.app", messagingSenderId: "28564797585", appId: "1:28564797585:web:9336b34b708fe6dc33e730" };
     const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app); const provider = new GoogleAuthProvider();
@@ -350,30 +342,26 @@
     let allPromos = []; let appliedDiscount = 0; let storeBilling = { gst: 0, shipping: 50, handling: 0, freeThreshold: 2 };
 
     const slider = document.getElementById('auto-slider'); let scrollPos = 0; let autoScroll;
-    function startSlider() { autoScroll = setInterval(() => { if(slider && slider.scrollWidth > 0) { scrollPos += slider.clientWidth; if(scrollPos >= slider.scrollWidth) scrollPos = 0; slider.scrollTo({ left: scrollPos, behavior: 'smooth' }); } }, 4000); }
-    if(slider) { slider.addEventListener('touchstart', () => clearInterval(autoScroll)); slider.addEventListener('touchend', startSlider); startSlider(); }
+    window.startSlider = function() { clearInterval(autoScroll); autoScroll = setInterval(() => { if(slider && slider.scrollWidth > 0) { scrollPos += slider.clientWidth; if(scrollPos >= slider.scrollWidth) scrollPos = 0; slider.scrollTo({ left: scrollPos, behavior: 'smooth' }); } }, 4000); }
+    if(slider) { slider.addEventListener('touchstart', () => clearInterval(autoScroll)); slider.addEventListener('touchend', window.startSlider); }
 
     let productCarouselInterval;
-    function startProductCarousel() {
+    window.startProductCarousel = function() {
         const pSlider = document.getElementById('modal-carousel'); if(!pSlider) return;
         clearInterval(productCarouselInterval);
         productCarouselInterval = setInterval(() => { if(pSlider.scrollWidth > 0) { let nextPos = pSlider.scrollLeft + pSlider.clientWidth; if (nextPos >= pSlider.scrollWidth) nextPos = 0; pSlider.scrollTo({ left: nextPos, behavior: 'smooth' }); } }, 3500);
     }
     window.updateIndicators = () => { const pSlider = document.getElementById('modal-carousel'); if(!pSlider) return; const index = Math.round(pSlider.scrollLeft / pSlider.clientWidth); const dots = document.querySelectorAll('.indicator'); dots.forEach((dot, i) => { if(i === index) dot.classList.add('active'); else dot.classList.remove('active'); }); };
 
-    // Set Persistent Login!
+    // MOBILE FRIENDLY LOGIN SYSTEM
     setPersistence(auth, browserLocalPersistence);
 
-    window.login = () => { signInWithPopup(auth, provider).catch(e => console.error(e)); };
+    window.login = () => { signInWithRedirect(auth, provider).catch(e => console.error(e)); };
     window.logoutUser = () => { auth.signOut().then(() => { window.restoreHome(); }); };
     
     window.handleTabClick = (tab) => {
         if(!window.currentUser) { 
             window.login(); 
-            // Wait for auth to complete then redirect
-            const unSub = onAuthStateChanged(auth, (user) => {
-                if(user) { window.showTargetTab(tab); unSub(); }
-            });
         } else { 
             window.showTargetTab(tab); 
         } 
@@ -414,32 +402,15 @@
                 html += `
                 <div class="track-box">
                     <div class="track-header">
-                        <div>
-                            <span style="color:#888; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Order Placed</span>
-                            <b style="color:var(--text); font-size:0.95rem;">${new Date(o.date).toLocaleDateString()}</b>
-                        </div>
-                        <div style="text-align:right;">
-                            <span style="color:#888; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Total</span>
-                            <b style="color:var(--primary); font-size:1.1rem;">₹${o.total}</b>
-                        </div>
+                        <div><span style="color:#888; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Order Placed</span><b style="color:var(--text); font-size:0.95rem;">${new Date(o.date).toLocaleDateString()}</b></div>
+                        <div style="text-align:right;"><span style="color:#888; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Total</span><b style="color:var(--primary); font-size:1.1rem;">₹${o.total}</b></div>
                     </div>
-                    
                     <p style="font-size:0.9rem; color:var(--text); line-height:1.6; margin-bottom: 20px;"><b>Items:</b> ${o.items}</p>
-                    
-                    <!-- DYNAMIC TIMELINE -->
                     <div class="timeline">
-                        <div class="timeline-step ${sLvl >= 1 ? 'completed' : ''} ${sLvl === 1 ? 'active' : ''}">
-                            <div class="timeline-dot">✓</div><span class="timeline-label">Processing</span>
-                        </div>
-                        <div class="timeline-step ${sLvl >= 2 ? 'completed' : ''} ${sLvl === 2 ? 'active' : ''}">
-                            <div class="timeline-dot">✓</div><span class="timeline-label">Ready</span>
-                        </div>
-                        <div class="timeline-step ${sLvl >= 3 ? 'completed' : ''} ${sLvl === 3 ? 'active' : ''}">
-                            <div class="timeline-dot">✓</div><span class="timeline-label">Delivered</span>
-                        </div>
-                        <div class="timeline-step ${sLvl >= 4 ? 'completed' : ''} ${sLvl === 4 ? 'active' : ''}">
-                            <div class="timeline-dot">★</div><span class="timeline-label">Complete</span>
-                        </div>
+                        <div class="timeline-step ${sLvl >= 1 ? 'completed' : ''} ${sLvl === 1 ? 'active' : ''}"><div class="timeline-dot">✓</div><span class="timeline-label">Processing</span></div>
+                        <div class="timeline-step ${sLvl >= 2 ? 'completed' : ''} ${sLvl === 2 ? 'active' : ''}"><div class="timeline-dot">✓</div><span class="timeline-label">Ready</span></div>
+                        <div class="timeline-step ${sLvl >= 3 ? 'completed' : ''} ${sLvl === 3 ? 'active' : ''}"><div class="timeline-dot">✓</div><span class="timeline-label">Delivered</span></div>
+                        <div class="timeline-step ${sLvl >= 4 ? 'completed' : ''} ${sLvl === 4 ? 'active' : ''}"><div class="timeline-dot">★</div><span class="timeline-label">Complete</span></div>
                     </div>
                 </div>`; 
             });
@@ -477,11 +448,15 @@
             if(configSnap.exists()) {
                 const data = configSnap.data();
                 if(data.billing) storeBilling = data.billing;
-                if(data.marqueeText) { document.getElementById('t-offer-banner').style.display = 'block'; document.getElementById('promo-marquee').innerText = data.marqueeText; }
+                if(data.marqueeText && data.marqueeText.trim() !== '') { 
+                    document.getElementById('t-offer-banner').style.display = 'block'; 
+                    document.getElementById('promo-marquee').innerText = data.marqueeText; 
+                }
                 if(data.heroBanners && data.heroBanners.length > 0) {
                     document.getElementById('home-banner-section').style.display = 'block';
                     const sliderDiv = document.getElementById('auto-slider'); sliderDiv.innerHTML = '';
                     data.heroBanners.forEach(url => { sliderDiv.innerHTML += `<div class="slide"><img src="${url}"></div>`; });
+                    window.startSlider();
                 }
             }
             const promoSnap = await getDoc(doc(db, "settings", "promos"));
@@ -493,17 +468,14 @@
 
             const vidSnap = await getDocs(collection(db, "community_videos"));
             const feed = document.getElementById('reels-feed-container'); feed.innerHTML = '';
-            if(!vidSnap.empty) {
+            if(vidSnap.empty) { feed.innerHTML = `<p style="color:#888; text-align:center; padding-top:40px; font-family:'Inter', sans-serif;">Videos coming soon...</p>`; }
+            else {
                 vidSnap.forEach(doc => {
                     const v = doc.data(); const embed = getYouTubeEmbed(v.url) || v.url;
-                    feed.innerHTML += `
-                    <div class="vid-card">
-                        <h3>${v.title}</h3>
-                        <div class="vid-iframe-wrapper"><iframe src="${embed}" allowfullscreen loading="lazy"></iframe></div>
-                    </div>`;
+                    feed.innerHTML += `<div class="vid-card"><h3>${v.title}</h3><div class="vid-iframe-wrapper"><iframe src="${embed}" allowfullscreen loading="lazy"></iframe></div></div>`;
                 });
             }
-        } catch(e) {}
+        } catch(e) { console.error("Firebase Error:", e); }
     }
 
     window.triggerCartFlow = () => { window.showCart(); };
@@ -522,24 +494,17 @@
 
     window.openLightbox = (url) => { document.getElementById('lightbox-img').src = url; document.getElementById('lightbox').classList.remove('hidden'); };
     
-    // PINCODE LOGIC
     window.verifyPincode = () => {
         const pin = document.getElementById('check-pin').value.trim();
         const msg = document.getElementById('pin-msg');
-        if(pin.length === 6) {
-            msg.style.color = "var(--primary)";
-            msg.innerText = "✓ Delivery available! Estimated dispatch: 3-5 days.";
-        } else {
-            msg.style.color = "red";
-            msg.innerText = "Please enter a valid 6-digit Pincode.";
-        }
+        if(pin.length === 6) { msg.style.color = "var(--primary)"; msg.innerText = "✓ Delivery available! Estimated dispatch: 3-5 days."; } 
+        else { msg.style.color = "red"; msg.innerText = "Please enter a valid 6-digit Pincode."; }
     }
 
     window.openProduct = (id) => { 
         const p = products.find(x => x.id === id); if(!p) return; 
         currentModalProductId = id; document.getElementById('modal-qty').innerText = cart[id] || 0; 
-        document.getElementById('check-pin').value = ''; document.getElementById('pin-msg').innerText = ''; // Reset Pincode UI
-
+        document.getElementById('check-pin').value = ''; document.getElementById('pin-msg').innerText = ''; 
         window.resetViews(); window.showSafe('product-view'); window.scrollTo(0, 0); 
         
         const carousel = document.getElementById('modal-carousel'); const indicators = document.getElementById('modal-indicators');
@@ -551,7 +516,7 @@
         const ytEmbed = getYouTubeEmbed(p.video);
         if (ytEmbed) { carousel.innerHTML += `<div class="media-slide"><iframe src="${ytEmbed}" allowfullscreen></iframe></div>`; indicators.innerHTML += `<div class="indicator ${mediaCount===0 ? 'active' : ''}"></div>`; mediaCount++; }
 
-        if(mediaCount > 1) startProductCarousel(); else clearInterval(productCarouselInterval);
+        if(mediaCount > 1) window.startProductCarousel(); else clearInterval(productCarouselInterval);
 
         document.getElementById('modal-name').innerText = p.name; document.getElementById('modal-price').innerText = `₹${p.price}`; document.getElementById('modal-desc').innerHTML = p.desc || "Ergonomic memory foam for the perfect travel companion."; 
         
@@ -601,8 +566,7 @@
         for(let id in cart) { 
             const p = products.find(x => x.id === id); 
             if(p) { 
-                sub += p.price * cart[id]; count += cart[id]; 
-                itemDetails.push(`${cart[id]}x ${p.name}`);
+                sub += p.price * cart[id]; count += cart[id]; itemDetails.push(`${cart[id]}x ${p.name}`);
                 list.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:15px;"><div style="flex:1;"><b style="color:var(--text); font-size:1.05rem; display:block;">${p.name}</b><span style="color:#777; font-size:0.85rem; font-weight:600;">₹${p.price}</span></div><div style="display:flex; align-items:center; gap:12px;"><input type="number" value="${cart[id]}" onchange="updateCartQty('${p.id}', this.value)" style="width:55px; padding:8px; margin:0; text-align:center; border:1px solid var(--border); border-radius:8px; background:var(--bg); font-weight:bold;"><span style="font-weight:800; min-width:60px; text-align:right; font-size:1.1rem; color:var(--primary);">₹${p.price*cart[id]}</span><button onclick="removeFromCart('${p.id}')" style="background:var(--bg); border:1px solid var(--border); border-radius:8px; width:34px; height:34px; color:#999; font-size:1.2rem; cursor:pointer;">&times;</button></div></div>`; 
             } 
         }
@@ -626,62 +590,62 @@
         document.getElementById('total').innerText = window.finalCheckoutTotal;
     }
 
-    // REAL ORDER CREATION SYSTEM
+    // CHECKOUT ORDER CREATION
     document.getElementById('order-form').onsubmit = async (e) => { 
         e.preventDefault(); 
         const btn = document.getElementById('checkout-btn');
         const user = auth.currentUser;
         
-        if(!user) { 
-            btn.innerText = "Please Sign In to Checkout"; 
-            setTimeout(() => { btn.innerText = "Complete Secure Purchase"; }, 2500); 
-            return window.login(); 
-        }
-
+        if(!user) { btn.innerText = "Please Sign In to Checkout"; setTimeout(() => { btn.innerText = "Complete Secure Purchase"; }, 2500); return window.login(); }
         if(window.finalCheckoutTotal === 0) return alert("Your bag is empty.");
 
         btn.innerText = "Processing Order..."; btn.disabled = true;
-
         const addr = `${document.getElementById('f-address').value}, ${document.getElementById('f-city').value}, PIN: ${document.getElementById('f-pin').value}`;
         
         try {
-            await addDoc(collection(db, "orders"), {
-                uid: user.uid,
-                name: document.getElementById('f-name').value,
-                phone: document.getElementById('f-phone').value,
-                address: addr,
-                items: window.currentCartItemsString,
-                total: window.finalCheckoutTotal,
-                status: "Processing", // Initial status for tracking
-                date: new Date().toISOString()
-            });
-
-            // Clear Cart
-            cart = {}; updateBadge(); appliedDiscount = 0;
-            document.getElementById('cart-promo-input').value = '';
-            document.getElementById('order-form').reset();
-            
-            btn.innerText = "Order Successful!";
-            setTimeout(() => { 
-                btn.innerText = "Complete Secure Purchase"; btn.disabled = false; 
-                window.activateNav(document.querySelectorAll('.nav-item')[1]); // Switch to Orders tab
-                window.handleTabClick('orders');
-            }, 1500);
-
-        } catch (error) {
-            btn.innerText = "Error. Try Again.";
-            setTimeout(() => { btn.innerText = "Complete Secure Purchase"; btn.disabled = false; }, 2500);
-        }
+            await addDoc(collection(db, "orders"), { uid: user.uid, name: document.getElementById('f-name').value, phone: document.getElementById('f-phone').value, address: addr, items: window.currentCartItemsString, total: window.finalCheckoutTotal, status: "Processing", date: new Date().toISOString() });
+            cart = {}; updateBadge(); appliedDiscount = 0; document.getElementById('cart-promo-input').value = ''; document.getElementById('order-form').reset();
+            btn.innerText = "Order Successful!"; setTimeout(() => { btn.innerText = "Complete Secure Purchase"; btn.disabled = false; window.activateNav(document.querySelectorAll('.nav-item')[1]); window.handleTabClick('orders'); }, 1500);
+        } catch (error) { btn.innerText = "Error. Try Again."; setTimeout(() => { btn.innerText = "Complete Secure Purchase"; btn.disabled = false; }, 2500); }
     };
 
     window.togglePlatformTheme = function() { const currentTheme = document.documentElement.getAttribute('data-theme'); const targetTheme = currentTheme === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', targetTheme); };
     window.hideSafe = function(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); };
     window.showSafe = function(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); };
+    
+    // BULLETPROOF TAB SWITCHING
     window.switchMainTab = function(tab) {
-        clearInterval(productCarouselInterval); 
-        if(tab === 'store') { document.getElementById('tab-store').className = 'tab-btn-main active'; document.getElementById('tab-videos').className = 'tab-btn-main inactive'; window.showSafe('t-offer-banner'); window.showSafe('home-banner-section'); window.showSafe('search-section'); window.showSafe('main-view'); window.showSafe('site-footer'); window.hideSafe('videos-view'); } 
-        else if (tab === 'videos') { document.getElementById('tab-videos').className = 'tab-btn-main active'; document.getElementById('tab-store').className = 'tab-btn-main inactive'; window.hideSafe('t-offer-banner'); window.hideSafe('home-banner-section'); window.hideSafe('search-section'); window.hideSafe('main-view'); window.hideSafe('site-footer'); window.showSafe('videos-view'); }
+        try {
+            clearInterval(productCarouselInterval); 
+            if(tab === 'store') { 
+                document.getElementById('tab-store').className = 'tab-btn-main active'; 
+                document.getElementById('tab-videos').className = 'tab-btn-main inactive'; 
+                
+                const marquee = document.getElementById('promo-marquee');
+                if (marquee && marquee.innerText.trim() !== '') window.showSafe('t-offer-banner'); 
+                
+                const slider = document.getElementById('auto-slider');
+                if (slider && slider.innerHTML.trim() !== '') window.showSafe('home-banner-section'); 
+                
+                window.showSafe('search-section'); 
+                window.showSafe('main-view'); 
+                window.showSafe('site-footer'); 
+                window.hideSafe('videos-view'); 
+            } 
+            else if (tab === 'videos') { 
+                document.getElementById('tab-videos').className = 'tab-btn-main active'; 
+                document.getElementById('tab-store').className = 'tab-btn-main inactive'; 
+                
+                window.hideSafe('t-offer-banner'); 
+                window.hideSafe('home-banner-section'); 
+                window.hideSafe('search-section'); 
+                window.hideSafe('main-view'); 
+                window.hideSafe('site-footer'); 
+                window.showSafe('videos-view'); 
+            }
+        } catch(e) { console.error("Navigation error:", e); }
     };
+
     window.resetViews = function() { clearInterval(productCarouselInterval); ['t-offer-banner', 'home-banner-section', 'main-view', 'product-view', 'cart-view', 'search-section', 'profile-view', 'policy-view', 'videos-view', 'site-footer', 'orders-view'].forEach(id => window.hideSafe(id)); };
     window.restoreHome = function() { window.resetViews(); window.switchMainTab('store'); window.scrollTo(0, 0); };
     window.activateNav = function(el) { if(!el) return; document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active'); };
@@ -698,6 +662,9 @@
         dropdown.style.display = 'block';
     };
     document.addEventListener('click', (e) => { if(!e.target.closest('.search-container')) { const dd = document.getElementById('search-dropdown'); if(dd) dd.style.display = 'none'; } });
+
+    // Initiate fetch
+    load();
 </script>
 </body>
 </html>
