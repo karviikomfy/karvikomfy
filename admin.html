@@ -37,7 +37,8 @@
         .loader { display: none; color: var(--primary); font-size: 0.9rem; font-weight: 600; margin-left: 15px;}
         #image-preview-container { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
         .preview-img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        select.status-drop { padding: 8px; border-radius: 6px; border: 1px solid var(--border); font-family: 'Inter', sans-serif; font-weight: 600; cursor: pointer; }
+        select.status-drop { padding: 8px; border-radius: 6px; border: 1px solid var(--border); font-family: 'Inter', sans-serif; font-weight: 600; cursor: pointer; background: var(--bg); color: var(--text);}
+        .cat-btn { background: transparent; color: var(--text); border: 1px solid var(--primary); padding: 8px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem; }
     </style>
 </head>
 <body>
@@ -79,9 +80,22 @@
                     <h3>Add New Pillow Design</h3>
                     <div class="form-group"><label>Product Name</label><input type="text" id="prod-name"></div>
                     <div class="form-group flex-row">
-                        <div style="flex: 1;"><label>Price (₹)</label><input type="number" id="prod-price" value="399"></div>
+                        <div style="flex: 1;"><label>Base Price (₹)</label><input type="number" id="prod-price" value="399"></div>
                         <div style="flex: 1;"><label>Category / Tag</label><input type="text" id="prod-tag" placeholder="e.g., Solid, Print"></div>
                     </div>
+                    
+                    <hr style="border:0; border-top:1px solid var(--border); margin:25px 0;">
+                    
+                    <!-- NEW DYNAMIC BUNDLE BUILDER -->
+                    <div class="form-group">
+                        <label>Add Offers / Bundles (Optional)</label>
+                        <p style="font-size:0.8rem; color:#666; margin-top:0;">E.g. Name: "Pack of 2", Price: "749". The base product price above is automatically saved as "Standard".</p>
+                        <div id="variants-container"></div>
+                        <button type="button" class="cat-btn" style="border:1px dashed var(--primary); color:var(--primary); margin-top:10px;" onclick="addVariantRow()">+ Add Bundle Option</button>
+                    </div>
+
+                    <hr style="border:0; border-top:1px solid var(--border); margin:25px 0;">
+
                     <div class="form-group flex-row">
                         <div style="flex: 2;"><label>Product Photos</label><input type="file" id="prod-images" multiple accept="image/*" onchange="previewImages(event)"><div id="image-preview-container"></div></div>
                         <div style="flex: 1;"><label>Video Link (Optional)</label><input type="text" id="prod-video" placeholder="YouTube or Direct Video URL"></div>
@@ -172,6 +186,7 @@
         
         const firebaseConfig = { apiKey: "AIzaSyBw4wX5g8n314AYy1btlYxblfFNsO6tKQ0", authDomain: "karvikomfy-d4d0d.firebaseapp.com", projectId: "karvikomfy-d4d0d", storageBucket: "karvikomfy-d4d0d.firebasestorage.app", messagingSenderId: "28564797585", appId: "1:28564797585:web:9336b34b708fe6dc33e730" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app);
+        
         const IMGBB_API_KEY = "18619d412a8e1e7a1dc960e350fafa3f";
 
         window.attemptLogin = () => { if (document.getElementById('admin-user').value === 'karvi' && document.getElementById('admin-pass').value === 'karvi0123') { document.getElementById('login-screen').style.display = 'none'; document.getElementById('dashboard').style.display = 'flex'; loadProducts(); loadOrders(); loadPromos(); loadStoreSettings(); loadCommunityVideos(); } else { document.getElementById('login-error').style.display = 'block'; } };
@@ -184,19 +199,56 @@
 
         window.loadProducts = async () => { onSnapshot(collection(db, "products"), (snapshot) => { const tbody = document.getElementById('products-table-body'); tbody.innerHTML = ''; snapshot.forEach(doc => { const p = doc.data(); const mainImg = p.images && p.images.length > 0 ? p.images[0] : ''; tbody.innerHTML += `<tr><td><img src="${mainImg}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"></td><td>${p.name}</td><td>₹${p.price}</td><td><button class="action-btn delete-btn" onclick="deleteProduct('${doc.id}')">Delete</button></td></tr>`; }); }); };
 
-        window.addProduct = async () => { const name = document.getElementById('prod-name').value; const price = parseInt(document.getElementById('prod-price').value); const tag = document.getElementById('prod-tag').value; const desc = document.getElementById('prod-desc').value; const videoUrl = document.getElementById('prod-video').value; const fileInput = document.getElementById('prod-images'); if(!name || fileInput.files.length === 0) return alert("Name and at least one image are required."); const btn = document.getElementById('add-prod-btn'); const loader = document.getElementById('prod-loader'); btn.disabled = true; loader.style.display = 'inline-block'; try { let uploadedImages = []; for(let i=0; i < fileInput.files.length; i++) { let url = await uploadFileToImgBB(fileInput.files[i]); uploadedImages.push(url); } await addDoc(collection(db, "products"), { name, price, tag, desc, images: uploadedImages, video: videoUrl, reviews: [] }); alert("Product Saved!"); document.getElementById('prod-name').value = ''; fileInput.value = ''; document.getElementById('prod-video').value = ''; document.getElementById('image-preview-container').innerHTML = ''; } catch(e) { alert(e.message); } btn.disabled = false; loader.style.display = 'none'; };
+        // DYNAMIC BUNDLE LOGIC
+        window.addVariantRow = () => {
+            const container = document.getElementById('variants-container');
+            container.innerHTML += `<div class="flex-row variant-row" style="margin-top:10px;"><input type="text" placeholder="e.g. Pack of 2" class="v-name" style="flex:2; margin:0;"><input type="number" placeholder="Price (₹)" class="v-price" style="flex:1; margin:0;"><button class="action-btn delete-btn" onclick="this.parentElement.remove()">X</button></div>`;
+        };
+
+        window.addProduct = async () => { 
+            const name = document.getElementById('prod-name').value; 
+            const price = parseInt(document.getElementById('prod-price').value); 
+            const tag = document.getElementById('prod-tag').value; 
+            const desc = document.getElementById('prod-desc').value; 
+            const videoUrl = document.getElementById('prod-video').value; 
+            const fileInput = document.getElementById('prod-images'); 
+            
+            if(!name || fileInput.files.length === 0) return alert("Name and at least one image are required."); 
+            
+            let variants = [];
+            document.querySelectorAll('.variant-row').forEach(row => {
+                const vName = row.querySelector('.v-name').value.trim();
+                const vPrice = parseInt(row.querySelector('.v-price').value);
+                if(vName && vPrice) variants.push({ name: vName, price: vPrice });
+            });
+
+            const btn = document.getElementById('add-prod-btn'); const loader = document.getElementById('prod-loader'); 
+            btn.disabled = true; loader.style.display = 'inline-block'; 
+            
+            try { 
+                let uploadedImages = []; 
+                for(let i=0; i < fileInput.files.length; i++) { 
+                    let url = await uploadFileToImgBB(fileInput.files[i]); 
+                    uploadedImages.push(url); 
+                } 
+                await addDoc(collection(db, "products"), { name, price, tag, desc, variants: variants, images: uploadedImages, video: videoUrl, reviews: [] }); 
+                alert("Product Saved!"); 
+                document.getElementById('prod-name').value = ''; fileInput.value = ''; document.getElementById('prod-video').value = ''; document.getElementById('image-preview-container').innerHTML = ''; document.getElementById('variants-container').innerHTML = '';
+            } catch(e) { alert(e.message); } 
+            
+            btn.disabled = false; loader.style.display = 'none'; 
+        };
+        
         window.deleteProduct = async (id) => { if(confirm("Delete this product?")) await deleteDoc(doc(db, "products", id)); };
 
         window.loadCommunityVideos = async () => { onSnapshot(collection(db, "community_videos"), (snapshot) => { const tbody = document.getElementById('videos-table-body'); tbody.innerHTML = ''; snapshot.forEach(doc => { const v = doc.data(); tbody.innerHTML += `<tr><td>${v.title}</td><td><a href="${v.url}" target="_blank" style="color:var(--primary); font-size:0.8rem;">View Link</a></td><td><button class="action-btn delete-btn" onclick="deleteCommunityVideo('${doc.id}')">Remove</button></td></tr>`; }); }); };
         window.addCommunityVideo = async () => { const title = document.getElementById('vid-title').value; const url = document.getElementById('vid-url').value; if(!url) return alert("URL is required"); try { await addDoc(collection(db, "community_videos"), { title, url }); document.getElementById('vid-title').value = ''; document.getElementById('vid-url').value = ''; } catch(e) { alert(e.message); } };
         window.deleteCommunityVideo = async (id) => { if(confirm("Remove this reel?")) await deleteDoc(doc(db, "community_videos", id)); };
 
-        // DYNAMIC STATUS CHANGER
         const trackOptions = ['Pending', 'Processing', 'Ready', 'Delivered', 'Complete'];
         window.loadOrders = async () => {
             onSnapshot(collection(db, "orders"), (snapshot) => {
                 const tbody = document.getElementById('orders-table-body'); tbody.innerHTML = '';
-                
                 const ordersArray = []; snapshot.forEach(doc => ordersArray.push({id: doc.id, ...doc.data()}));
                 ordersArray.sort((a,b) => new Date(b.date) - new Date(a.date));
 
@@ -210,10 +262,7 @@
             });
         };
 
-        window.updateOrderStatus = async (id, newStatus) => {
-            try { await updateDoc(doc(db, "orders", id), { status: newStatus }); } 
-            catch(e) { alert("Failed to update status"); }
-        };
+        window.updateOrderStatus = async (id, newStatus) => { try { await updateDoc(doc(db, "orders", id), { status: newStatus }); } catch(e) { alert("Failed to update status"); } };
 
         window.loadPromos = async () => { onSnapshot(doc(db, "settings", "promos"), (docSnap) => { const tbody = document.getElementById('promos-table-body'); tbody.innerHTML = ''; if(docSnap.exists() && docSnap.data().codes) { docSnap.data().codes.forEach(c => { tbody.innerHTML += `<tr><td><b>${c.code}</b></td><td>₹${c.discount}</td><td>₹${c.minOrder}</td><td><button class="action-btn delete-btn" onclick="deletePromo('${c.code}')">Remove</button></td></tr>`; }); } }); };
         window.addPromo = async () => { const code = document.getElementById('promo-code').value.toUpperCase(); const discount = parseInt(document.getElementById('promo-discount').value); const minOrder = parseInt(document.getElementById('promo-min').value); if(!code || !discount) return alert("Code and Discount required."); try { await setDoc(doc(db, "settings", "promos"), { codes: arrayUnion({code, discount, minOrder: minOrder || 0}) }, { merge: true }); alert("Promo Added!"); } catch(e) { alert(e.message); } };
@@ -222,7 +271,7 @@
         window.loadStoreSettings = async () => { onSnapshot(doc(db, "settings", "store_config"), (docSnap) => { if(docSnap.exists()) { const data = docSnap.data(); if(data.billing) { document.getElementById('set-gst').value = data.billing.gst || 0; document.getElementById('set-shipping').value = data.billing.shipping || 50; document.getElementById('set-free-threshold').value = data.billing.freeThreshold || 2; } if(data.marqueeText) { document.getElementById('set-marquee').value = data.marqueeText; } const tbody = document.getElementById('banners-table-body'); tbody.innerHTML = ''; if(data.heroBanners && data.heroBanners.length > 0) { data.heroBanners.forEach(imgUrl => { tbody.innerHTML += `<tr><td><img src="${imgUrl}" style="height:60px; border-radius:4px;"></td><td><button class="action-btn delete-btn" onclick="deleteHeroBanner('${imgUrl}')">Remove</button></td></tr>`; }); } else { tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; color:#888;">No banners added.</td></tr>'; } } }); };
         window.saveBillingSettings = async () => { const gst = parseFloat(document.getElementById('set-gst').value) || 0; const shipping = parseFloat(document.getElementById('set-shipping').value) || 0; const freeThreshold = parseFloat(document.getElementById('set-free-threshold').value) || 2; try { await setDoc(doc(db, "settings", "store_config"), { billing: { gst, shipping, handling:0, freeThreshold } }, { merge: true }); alert("Rules Updated!"); } catch(e) { alert(e.message); } };
         window.saveMarquee = async () => { const marqueeText = document.getElementById('set-marquee').value; try { await setDoc(doc(db, "settings", "store_config"), { marqueeText }, { merge: true }); alert("Marquee Updated!"); } catch(e) { alert(e.message); } };
-        window.addHeroBanner = async () => { const fileInput = document.getElementById('banner-file'); if(fileInput.files.length === 0) return alert("Select an image from gallery."); const btn = document.getElementById('add-banner-btn'); const loader = document.getElementById('banner-loader'); btn.disabled = true; loader.style.display = 'inline-block'; try { let url = await uploadFileToImgBB(fileInput.files[0]); await setDoc(doc(db, "settings", "store_config"), { heroBanners: arrayUnion(url) }, { merge: true }); fileInput.value = ''; } catch(e) { alert(e.message); } btn.disabled = false; loader.style.display = 'none'; };
+        window.addHeroBanner = async () => { const fileInput = document.getElementById('banner-file'); if(fileInput.files.length === 0) return alert("Select an image from gallery."); const btn = document.getElementById('add-banner-btn'); const loader = document.getElementById('banner-loader'); btn.disabled = true; loader.style.display = 'inline-block'; try { let url = await uploadFileToImgBB(fileInput.files[0]); await setDoc(doc(db, "settings", "store_config"), { heroBanners: arrayUnion(url) }, { merge: true }); fileInput.value = ''; alert("Banner Successfully Added!");} catch(e) { alert(e.message); } btn.disabled = false; loader.style.display = 'none'; };
         window.deleteHeroBanner = async (url) => { if(confirm("Remove this banner?")) { try { await updateDoc(doc(db, "settings", "store_config"), { heroBanners: arrayRemove(url) }); } catch(e) { alert(e.message); } } };
     </script>
 </body>
