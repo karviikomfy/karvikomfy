@@ -330,7 +330,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, addDoc, query, where, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = { apiKey: "AIzaSyBw4wX5g8n314AYy1btlYxblfFNsO6tKQ0", authDomain: "karvikomfy-d4d0d.firebaseapp.com", projectId: "karvikomfy-d4d0d", storageBucket: "karvikomfy-d4d0d.firebasestorage.app", messagingSenderId: "28564797585", appId: "1:28564797585:web:9336b34b708fe6dc33e730" };
     const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app); const provider = new GoogleAuthProvider();
@@ -353,7 +353,7 @@
 
     setPersistence(auth, browserLocalPersistence);
 
-    // 10/10 UPGRADE: IN-APP BROWSER DETECTOR & FIX
+    // 10/10 UPGRADE: IN-APP BROWSER DETECTOR & SAFE LOGIN
     window.login = () => { 
         const ua = navigator.userAgent || navigator.vendor || window.opera;
         const isInApp = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1) || (ua.indexOf("WhatsApp") > -1);
@@ -363,9 +363,11 @@
             return;
         }
 
-        signInWithRedirect(auth, provider).catch(e => {
+        signInWithPopup(auth, provider).catch(e => {
             console.error(e);
-            alert("Login failed. Please open this website in standard Google Chrome or Safari to sign in.");
+            if(e.code !== 'auth/popup-closed-by-user') {
+                alert("Login failed. If popups are blocked, please allow them for this site.");
+            }
         }); 
     };
 
