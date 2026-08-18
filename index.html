@@ -45,6 +45,12 @@
 
         .cat-btn { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); padding: 8px 20px; border-radius: 30px; font-weight: 600; white-space: nowrap; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.02);}
         .cat-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(216, 27, 96, 0.3);}
+        
+        /* VARIANT PILLS */
+        .variant-container { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 25px; }
+        .variant-pill { background: var(--bg); color: var(--text); border: 2px solid var(--border); padding: 10px 18px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 0.9rem; transition: all 0.3s ease; }
+        .variant-pill.active { background: rgba(216, 27, 96, 0.05); border-color: var(--primary); color: var(--primary); }
+
         .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; background: var(--bg); max-width: 1200px; margin: 0 auto;}
         .p-card { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.03); transition: transform 0.3s ease, box-shadow 0.3s ease; }
         .p-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
@@ -187,8 +193,11 @@
 
         <h2 id="modal-name" style="margin:10px 0 10px 0; font-size: 1.8rem; font-weight: 700; color: var(--text); font-family: 'Playfair Display', serif;"></h2>
         <h3 id="modal-price" style="color:var(--primary); margin:0 0 15px 0; font-size: 1.5rem; font-weight: 800;" class="font-inter"></h3>
-        <div style="margin-bottom:25px;" class="font-inter"><span id="modal-rating-avg" style="color:var(--gold); font-size:1.1rem; font-weight: 600;">⭐ 5.0</span> <span id="modal-rating-count" style="font-size:0.85rem; color:#888;"></span></div>
+        <div style="margin-bottom:20px;" class="font-inter"><span id="modal-rating-avg" style="color:var(--gold); font-size:1.1rem; font-weight: 600;">⭐ 5.0</span> <span id="modal-rating-count" style="font-size:0.85rem; color:#888;"></span></div>
         
+        <!-- NEW DYNAMIC BUNDLE / VARIANT PILLS -->
+        <div id="modal-variants-container" class="variant-container font-inter"></div>
+
         <div class="pin-checker font-inter">
             <b style="font-size:0.85rem; text-transform:uppercase; color:var(--text); letter-spacing:1px;">Check Delivery Availability</b>
             <div class="pin-input-group">
@@ -201,7 +210,7 @@
         <p id="modal-desc" style="font-size:1rem; line-height: 1.8; margin-bottom: 30px; color: var(--text);" class="font-inter"></p>
         
         <div class="p-qty" id="modal-qty-controls" style="margin:0 0 20px 0; padding:8px; border-radius:8px; display:inline-flex; width:130px; background: var(--bg);">
-            <button onclick="updateQty(currentModalProductId, -1)">−</button><span id="modal-qty" style="padding: 0 15px; font-weight:bold; font-size:1.1rem;" class="font-inter">0</span><button onclick="updateQty(currentModalProductId, 1)">+</button>
+            <button onclick="updateModalQty(-1)">−</button><span id="modal-qty" style="padding: 0 15px; font-weight:bold; font-size:1.1rem;" class="font-inter">0</span><button onclick="updateModalQty(1)">+</button>
         </div>
         <div style="display:flex; gap:15px; margin-bottom:40px;">
             <button id="modal-add-btn" class="btn-cart" style="padding:16px;">Add to Bag</button>
@@ -337,6 +346,7 @@
     const IMGBB_API_KEY = "18619d412a8e1e7a1dc960e350fafa3f";
 
     window.currentUser = null; let products = []; let cart = {}; window.currentModalProductId = null;
+    window.currentSelectedVariant = null; // TRACKS CURRENT BUNDLE SELECTION
     let allPromos = []; let appliedDiscount = 0; let storeBilling = { gst: 0, shipping: 50, handling: 0, freeThreshold: 2 };
 
     const slider = document.getElementById('auto-slider'); let scrollPos = 0; let autoScroll;
@@ -353,29 +363,21 @@
 
     setPersistence(auth, browserLocalPersistence);
 
-    // 10/10 UPGRADE: IN-APP BROWSER DETECTOR & SAFE LOGIN
     window.login = () => { 
         const ua = navigator.userAgent || navigator.vendor || window.opera;
         const isInApp = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1) || (ua.indexOf("WhatsApp") > -1);
         
-        if (isInApp) {
-            alert("Google Sign-In is blocked by Instagram/WhatsApp. Please tap the three dots (top right) and select 'Open in Chrome' or 'Open in Browser' to log in securely.");
-            return;
-        }
+        if (isInApp) { alert("Google Sign-In is blocked by Instagram/WhatsApp. Please tap the three dots (top right) and select 'Open in Chrome' or 'Open in Browser' to log in securely."); return; }
 
         signInWithPopup(auth, provider).catch(e => {
             console.error(e);
-            if(e.code !== 'auth/popup-closed-by-user') {
-                alert("Login failed. If popups are blocked, please allow them for this site.");
-            }
+            if(e.code !== 'auth/popup-closed-by-user') { alert("Login failed. If popups are blocked, please allow them for this site."); }
         }); 
     };
 
     window.logoutUser = () => { auth.signOut().then(() => { window.restoreHome(); }); };
     
-    window.handleTabClick = (tab) => {
-        window.showTargetTab(tab); 
-    };
+    window.handleTabClick = (tab) => { window.showTargetTab(tab); };
 
     window.showTargetTab = (tab) => {
         window.resetViews();
@@ -506,13 +508,25 @@
     window.triggerCartFlow = () => { window.showCart(); };
     window.showCart = () => { window.resetViews(); window.showSafe('cart-view'); window.scrollTo(0, 0); window.renderCart(); };
 
+    // UPDATED RENDER FOR VARIANTS
     function render() {
         const grid = document.getElementById('main-view'); grid.innerHTML = '';
         if (products.length === 0) { grid.innerHTML = `<p style="text-align:center; color:#888; grid-column: 1 / -1; padding: 40px;">Inventory is empty. Add products via Admin panel.</p>`; return; }
+        
         products.forEach(p => {
-            const q = cart[p.id] || 0; let badgeHtml = p.tag ? `<div class="p-badge">${p.tag}</div>` : '';
+            let hasVariants = p.variants && p.variants.length > 0;
+            let badgeHtml = p.tag ? `<div class="p-badge">${p.tag}</div>` : '';
             const mainImg = p.images && p.images.length > 0 ? p.images[0] : (p.image || ''); 
-            let btnHtml = q > 0 ? `<div class="p-qty"><button onclick="updateQty('${p.id}',-1)">−</button><span style="font-weight:bold;">${q}</span><button onclick="updateQty('${p.id}',1)">+</button></div>` : `<div class="p-actions"><button class="btn-cart" onclick="updateQty('${p.id}',1)">Add</button><button class="btn-buy" onclick="buyNow('${p.id}')">Purchase</button></div>`;
+            
+            let btnHtml = '';
+            if(hasVariants) {
+                btnHtml = `<div class="p-actions" style="display:flex; gap:10px;"><button class="btn-buy" onclick="openProduct('${p.id}')">View Offers</button></div>`;
+            } else {
+                let cartKey = `${p.id}|||Standard`;
+                let q = cart[cartKey] || 0;
+                btnHtml = q > 0 ? `<div class="p-qty"><button onclick="updateQty('${p.id}',-1,'Standard')">−</button><span style="font-weight:bold;">${q}</span><button onclick="updateQty('${p.id}',1,'Standard')">+</button></div>` : `<div class="p-actions" style="display:flex; gap:10px;"><button class="btn-cart" onclick="updateQty('${p.id}',1,'Standard')">Add</button><button class="btn-buy" onclick="buyNow('${p.id}', 'Standard')">Purchase</button></div>`;
+            }
+
             grid.innerHTML += `<div class="p-card">${badgeHtml}<div class="p-img-container" onclick="openProduct('${p.id}')"><img src="${mainImg}" class="p-img" loading="lazy"></div><div class="p-details"><h4 onclick="openProduct('${p.id}')">${p.name}</h4><div class="p-price-row"><span class="p-price">₹${p.price}</span></div>${btnHtml}</div></div>`;
         });
     }
@@ -526,9 +540,10 @@
         else { msg.style.color = "red"; msg.innerText = "Please enter a valid 6-digit Pincode."; }
     }
 
+    // UPDATED PRODUCT MODAL FOR VARIANTS
     window.openProduct = (id) => { 
         const p = products.find(x => x.id === id); if(!p) return; 
-        currentModalProductId = id; document.getElementById('modal-qty').innerText = cart[id] || 0; 
+        currentModalProductId = id;  
         document.getElementById('check-pin').value = ''; document.getElementById('pin-msg').innerText = ''; 
         window.resetViews(); window.showSafe('product-view'); window.scrollTo(0, 0); 
         
@@ -543,14 +558,50 @@
 
         if(mediaCount > 1) window.startProductCarousel(); else clearInterval(productCarouselInterval);
 
-        document.getElementById('modal-name').innerText = p.name; document.getElementById('modal-price').innerText = `₹${p.price}`; document.getElementById('modal-desc').innerHTML = p.desc || "Ergonomic memory foam for the perfect travel companion."; 
+        document.getElementById('modal-name').innerText = p.name; document.getElementById('modal-desc').innerHTML = p.desc || "Ergonomic memory foam for the perfect travel companion."; 
         
+        // Render Variants
+        const vContainer = document.getElementById('modal-variants-container');
+        vContainer.innerHTML = '';
+        if (p.variants && p.variants.length > 0) {
+            let allVariants = [{name: "Standard", price: p.price}, ...p.variants];
+            allVariants.forEach((v, idx) => {
+                vContainer.innerHTML += `<button class="variant-pill ${idx === 0 ? 'active' : ''}" onclick="selectVariant(this, '${v.name}', ${v.price})">${v.name} - ₹${v.price}</button>`;
+            });
+            window.currentSelectedVariant = allVariants[0];
+            document.getElementById('modal-price').innerText = `₹${allVariants[0].price}`;
+        } else {
+            window.currentSelectedVariant = {name: "Standard", price: p.price};
+            document.getElementById('modal-price').innerText = `₹${p.price}`;
+        }
+
+        // Setup Cart Data for current variant
+        let cartKey = `${id}|||${window.currentSelectedVariant.name}`;
+        document.getElementById('modal-qty').innerText = cart[cartKey] || 0; 
+
         let avg = "5.0"; let revCount = 0; if(p.reviews && p.reviews.length > 0) { revCount = p.reviews.length; avg = (p.reviews.reduce((a,b) => a + Number(b.rating), 0) / revCount).toFixed(1); }
         document.getElementById('modal-rating-avg').innerText = `⭐ ${avg}`; document.getElementById('modal-rating-count').innerText = `(${revCount} reviews)`;
         renderReviews(p.reviews || []);
 
-        document.getElementById('modal-add-btn').onclick = () => { window.updateQty(id, 1); const btn = document.getElementById('modal-add-btn'); btn.innerText = "Added"; setTimeout(() => { btn.innerText = "Add to Bag"; }, 1500); }; 
-        document.getElementById('modal-buy-btn').onclick = () => { if (!cart[id]) window.updateQty(id, 1); window.triggerCartFlow(); window.activateNav(document.querySelectorAll('.nav-item')[3]); }; 
+        document.getElementById('modal-add-btn').onclick = () => { 
+            window.updateQty(id, 1, window.currentSelectedVariant.name); 
+            const btn = document.getElementById('modal-add-btn'); btn.innerText = "Added"; setTimeout(() => { btn.innerText = "Add to Bag"; }, 1500); 
+        }; 
+        document.getElementById('modal-buy-btn').onclick = () => { 
+            let vName = window.currentSelectedVariant.name;
+            let cKey = `${id}|||${vName}`;
+            if (!cart[cKey]) window.updateQty(id, 1, vName); 
+            window.triggerCartFlow(); window.activateNav(document.querySelectorAll('.nav-item')[3]); 
+        }; 
+    };
+
+    window.selectVariant = (btnElement, name, price) => {
+        document.querySelectorAll('.variant-pill').forEach(b => b.classList.remove('active'));
+        btnElement.classList.add('active');
+        window.currentSelectedVariant = { name, price };
+        document.getElementById('modal-price').innerText = `₹${price}`;
+        let cartKey = `${currentModalProductId}|||${name}`;
+        document.getElementById('modal-qty').innerText = cart[cartKey] || 0;
     };
 
     function renderReviews(reviews) {
@@ -572,15 +623,47 @@
         try { await updateDoc(doc(db, "products", currentModalProductId), { reviews: arrayUnion(newReview) }); const p = products.find(x => x.id === currentModalProductId); if(!p.reviews) p.reviews = []; p.reviews.push(newReview); document.getElementById('review-text').value = ''; fileInput.value = ''; document.getElementById('star5').checked = true; renderReviews(p.reviews); render(); btn.innerText = "Submitted!"; setTimeout(() => { btn.innerText = "Submit Review"; btn.disabled = false; }, 2000); } catch (error) { btn.innerText = "Error saving review."; setTimeout(() => { btn.innerText = "Submit Review"; btn.disabled = false; }, 2000); }
     };
 
-    window.updateQty = (id, d) => { cart[id] = (cart[id] || 0) + d; if(cart[id] <= 0) delete cart[id]; render(); updateBadge(); window.renderCart(); if (currentModalProductId === id && document.getElementById('modal-qty')) document.getElementById('modal-qty').innerText = cart[id] || 0; };
-    window.buyNow = (id) => { if(!cart[id]) cart[id] = 1; updateBadge(); window.triggerCartFlow(); window.activateNav(document.querySelectorAll('.nav-item')[3]); };
+    // UPDATED CART LOGIC FOR VARIANTS
+    window.updateModalQty = (d) => {
+        if(!currentModalProductId) return;
+        let vName = window.currentSelectedVariant ? window.currentSelectedVariant.name : "Standard";
+        window.updateQty(currentModalProductId, d, vName);
+    };
+
+    window.updateQty = (id, d, variantName = 'Standard') => { 
+        let cartKey = `${id}|||${variantName}`;
+        cart[cartKey] = (cart[cartKey] || 0) + d; 
+        if(cart[cartKey] <= 0) delete cart[cartKey]; 
+        
+        render(); updateBadge(); window.renderCart(); 
+        
+        if (currentModalProductId === id && document.getElementById('modal-qty')) {
+            let currentVName = window.currentSelectedVariant ? window.currentSelectedVariant.name : "Standard";
+            if(currentVName === variantName) { document.getElementById('modal-qty').innerText = cart[cartKey] || 0; }
+        }
+    };
+    
+    window.buyNow = (id, variantName = 'Standard') => { 
+        let cartKey = `${id}|||${variantName}`;
+        if(!cart[cartKey]) cart[cartKey] = 1; 
+        updateBadge(); window.triggerCartFlow(); window.activateNav(document.querySelectorAll('.nav-item')[3]); 
+    };
+
     function updateBadge() { document.getElementById('nav-badge').innerText = Object.values(cart).reduce((a,b)=>a+b,0); }
-    window.updateCartQty = (id, newQty) => { let qty = parseInt(newQty); if(qty > 0) cart[id] = qty; else delete cart[id]; render(); updateBadge(); window.renderCart(); };
-    window.removeFromCart = (id) => { delete cart[id]; render(); updateBadge(); window.renderCart(); };
+    window.updateCartQty = (cartKey, newQty) => { let qty = parseInt(newQty); if(qty > 0) cart[cartKey] = qty; else delete cart[cartKey]; render(); updateBadge(); window.renderCart(); };
+    window.removeFromCart = (cartKey) => { delete cart[cartKey]; render(); updateBadge(); window.renderCart(); };
 
     window.applyPromo = () => {
         const input = document.getElementById('cart-promo-input').value.trim().toUpperCase(); const msg = document.getElementById('promo-msg');
-        let sub = Object.keys(cart).reduce((acc, id) => acc + (products.find(p => p.id === id)?.price || 0) * cart[id], 0);
+        let sub = Object.keys(cart).reduce((acc, key) => {
+            let [id, vName] = key.split("|||");
+            let p = products.find(x => x.id === id);
+            if(!p) return acc;
+            let pPrice = p.price;
+            if(vName !== "Standard" && p.variants) { let match = p.variants.find(v => v.name === vName); if(match) pPrice = match.price; }
+            return acc + (pPrice * cart[key]);
+        }, 0);
+
         const matched = allPromos.find(p => p.code === input);
         if (matched) { if (sub < matched.minOrder) { msg.style.color = "#888"; msg.innerText = `Add ₹${matched.minOrder - sub} more to activate.`; appliedDiscount = 0; } else { msg.style.color = "var(--primary)"; msg.innerText = `Code Validated.`; appliedDiscount = matched.discount; } } else { msg.style.color = "red"; msg.innerText = "Invalid code."; appliedDiscount = 0; }
         window.renderCart();
@@ -588,11 +671,19 @@
 
     window.renderCart = function() {
         const list = document.getElementById('cart-list'); list.innerHTML = ''; let sub = 0; let count = 0; let itemDetails = [];
-        for(let id in cart) { 
+        
+        for(let key in cart) { 
+            let [id, vName] = key.split("|||");
             const p = products.find(x => x.id === id); 
             if(p) { 
-                sub += p.price * cart[id]; count += cart[id]; itemDetails.push(`${cart[id]}x ${p.name}`);
-                list.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:15px;"><div style="flex:1;"><b style="color:var(--text); font-size:1.05rem; display:block;">${p.name}</b><span style="color:#777; font-size:0.85rem; font-weight:600;">₹${p.price}</span></div><div style="display:flex; align-items:center; gap:12px;"><input type="number" value="${cart[id]}" onchange="updateCartQty('${p.id}', this.value)" style="width:55px; padding:8px; margin:0; text-align:center; border:1px solid var(--border); border-radius:8px; background:var(--bg); font-weight:bold;"><span style="font-weight:800; min-width:60px; text-align:right; font-size:1.1rem; color:var(--primary);">₹${p.price*cart[id]}</span><button onclick="removeFromCart('${p.id}')" style="background:var(--bg); border:1px solid var(--border); border-radius:8px; width:34px; height:34px; color:#999; font-size:1.2rem; cursor:pointer;">&times;</button></div></div>`; 
+                let itemPrice = p.price;
+                if(vName !== "Standard" && p.variants) { let match = p.variants.find(v => v.name === vName); if(match) itemPrice = match.price; }
+
+                sub += itemPrice * cart[key]; count += cart[key]; 
+                let displayName = vName === "Standard" ? p.name : `${p.name} (${vName})`;
+                itemDetails.push(`${cart[key]}x ${displayName}`);
+                
+                list.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:15px;"><div style="flex:1;"><b style="color:var(--text); font-size:1.05rem; display:block;">${displayName}</b><span style="color:#777; font-size:0.85rem; font-weight:600;">₹${itemPrice}</span></div><div style="display:flex; align-items:center; gap:12px;"><input type="number" value="${cart[key]}" onchange="updateCartQty('${key}', this.value)" style="width:55px; padding:8px; margin:0; text-align:center; border:1px solid var(--border); border-radius:8px; background:var(--bg); font-weight:bold;"><span style="font-weight:800; min-width:60px; text-align:right; font-size:1.1rem; color:var(--primary);">₹${itemPrice*cart[key]}</span><button onclick="removeFromCart('${key}')" style="background:var(--bg); border:1px solid var(--border); border-radius:8px; width:34px; height:34px; color:#999; font-size:1.2rem; cursor:pointer;">&times;</button></div></div>`; 
             } 
         }
         
