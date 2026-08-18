@@ -66,11 +66,9 @@
         <div class="main-content">
             <div id="sec-orders" class="section-view active">
                 <h1>Order Management</h1>
-                <div class="card">
-                    <table>
-                        <thead><tr><th>Order Date</th><th>Customer</th><th>Amount</th><th>Update Status</th><th>Action</th></tr></thead>
-                        <tbody id="orders-table-body"></tbody>
-                    </table>
+                <!-- UPDATED ORDERS CONTAINER -->
+                <div id="admin-orders-list">
+                    <!-- Orders will be injected here automatically by loadOrders() -->
                 </div>
             </div>
 
@@ -245,20 +243,89 @@
         window.addCommunityVideo = async () => { const title = document.getElementById('vid-title').value; const url = document.getElementById('vid-url').value; if(!url) return alert("URL is required"); try { await addDoc(collection(db, "community_videos"), { title, url }); document.getElementById('vid-title').value = ''; document.getElementById('vid-url').value = ''; } catch(e) { alert(e.message); } };
         window.deleteCommunityVideo = async (id) => { if(confirm("Remove this reel?")) await deleteDoc(doc(db, "community_videos", id)); };
 
-        const trackOptions = ['Pending', 'Processing', 'Ready', 'Delivered', 'Complete'];
+        // UPDATED CARD-BASED ORDERS RENDER FUNCTION
         window.loadOrders = async () => {
             onSnapshot(collection(db, "orders"), (snapshot) => {
-                const tbody = document.getElementById('orders-table-body'); tbody.innerHTML = '';
-                const ordersArray = []; snapshot.forEach(doc => ordersArray.push({id: doc.id, ...doc.data()}));
-                ordersArray.sort((a,b) => new Date(b.date) - new Date(a.date));
+                const ordersContainer = document.getElementById('admin-orders-list');
+                if (!ordersContainer) return;
 
-                ordersArray.forEach(o => { 
-                    let selectHtml = `<select class="status-drop" onchange="updateOrderStatus('${o.id}', this.value)">`;
-                    trackOptions.forEach(opt => { selectHtml += `<option value="${opt}" ${o.status === opt ? 'selected' : ''}>${opt}</option>`; });
-                    selectHtml += `</select>`;
+                if (snapshot.empty) {
+                    ordersContainer.innerHTML = '<p style="text-align:center; color:#888; padding:30px;">No orders found.</p>';
+                    return;
+                }
 
-                    tbody.innerHTML += `<tr><td style="font-size:0.8rem;color:#666;">${new Date(o.date).toLocaleDateString()}</td><td><b>${o.name || 'N/A'}</b><br><span style="font-size:0.8rem;">${o.phone || ''}</span></td><td>₹${o.total}</td><td>${selectHtml}</td><td><button class="action-btn" onclick="alert('Items: ${o.items}\\nAddress: ${o.address}')">View Details</button></td></tr>`; 
+                const ordersArray = [];
+                snapshot.forEach(doc => ordersArray.push({ id: doc.id, ...doc.data() }));
+                
+                // Sort latest orders first
+                ordersArray.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+                let html = '';
+                ordersArray.forEach(order => {
+                    const orderDate = order.date ? new Date(order.date).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A';
+                    const payBadgeColor = order.payMode === 'COD' ? '#F59E0B' : '#10B981';
+
+                    html += `
+                    <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border, #e2e8f0); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); font-family: 'Inter', sans-serif;">
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid var(--border, #e2e8f0); padding-bottom: 12px; margin-bottom: 15px;">
+                            <div>
+                                <span style="font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Order ID</span>
+                                <div style="font-weight: 700; color: var(--text, #0f172a); font-size: 0.95rem;">#${order.id}</div>
+                                <span style="font-size: 0.8rem; color: #94a3b8;">${orderDate}</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="display: inline-block; background: ${payBadgeColor}; color: white; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-bottom: 4px;">
+                                    ${order.payMode || 'Prepaid'}
+                                </span>
+                                <div style="font-size: 1.25rem; font-weight: 800; color: var(--primary, #D81B60);">₹${order.total || 0}</div>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                            
+                            <div style="background: var(--bg, #f8fafc); padding: 14px; border-radius: 8px; border: 1px solid var(--border, #e2e8f0);">
+                                <b style="display: block; font-size: 0.8rem; color: #64748b; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">📍 Delivery Details</b>
+                                <div style="font-weight: 700; color: var(--text, #0f172a); font-size: 1rem; margin-bottom: 4px;">${order.name || 'Anonymous Customer'}</div>
+                                <div style="color: #475569; font-size: 0.9rem; margin-bottom: 6px;">
+                                    📞 <a href="tel:${order.phone}" style="color: inherit; text-decoration: none; font-weight: 600;">${order.phone || 'No phone'}</a>
+                                </div>
+                                <div style="color: #334155; font-size: 0.88rem; line-height: 1.4;">
+                                    ${order.address || 'No address provided'}
+                                </div>
+                            </div>
+
+                            <div style="background: var(--bg, #f8fafc); padding: 14px; border-radius: 8px; border: 1px solid var(--border, #e2e8f0);">
+                                <b style="display: block; font-size: 0.8rem; color: #64748b; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">📦 Items Ordered</b>
+                                <div style="font-size: 0.92rem; color: var(--text, #0f172a); font-weight: 600; line-height: 1.5; white-space: pre-wrap;">
+                                    ${order.items || 'No item details recorded'}
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-top: 1px solid var(--border, #e2e8f0); padding-top: 12px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 0.85rem; font-weight: 600; color: #64748b;">Status:</span>
+                                <select onchange="updateOrderStatus('${order.id}', this.value)" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border, #cbd5e1); font-weight: 600; font-size: 0.85rem; background: var(--card-bg, #fff); color: var(--text, #0f172a);">
+                                    <option value="Pending" ${order.status === 'Pending' || order.status === 'Pending COD' ? 'selected' : ''}>Pending / New</option>
+                                    <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                                    <option value="Ready" ${order.status === 'Ready' || order.status === 'Shipped' ? 'selected' : ''}>Ready / Dispatched</option>
+                                    <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                                    <option value="Complete" ${order.status === 'Complete' ? 'selected' : ''}>Complete</option>
+                                </select>
+                            </div>
+
+                            ${order.phone ? `
+                            <a href="https://wa.me/91${order.phone.replace(/[^0-9]/g, '').slice(-10)}?text=Hello%20${encodeURIComponent(order.name || '')},%20we%20received%20your%20order%20%23${order.id}!" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background: #25D366; color: white; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 700;">
+                                <span>💬 WhatsApp Customer</span>
+                            </a>` : ''}
+                        </div>
+
+                    </div>`;
                 });
+
+                ordersContainer.innerHTML = html;
             });
         };
 
