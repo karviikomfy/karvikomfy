@@ -323,13 +323,11 @@
 </div>
 
 <script type="text/javascript">
-    // @ts-nocheck
     function googleTranslateElementInit() { new google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'en,hi,mr,gu,ta,te', layout: google.translate.TranslateElement.InlineLayout.SIMPLE }, 'google_translate_element'); }
 </script>
 <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 <script type="module">
-    // @ts-nocheck
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, addDoc, query, where, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -355,10 +353,24 @@
 
     setPersistence(auth, browserLocalPersistence);
 
-    window.login = () => { signInWithRedirect(auth, provider).catch(e => console.error(e)); };
+    // 10/10 UPGRADE: IN-APP BROWSER DETECTOR & FIX
+    window.login = () => { 
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isInApp = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1) || (ua.indexOf("WhatsApp") > -1);
+        
+        if (isInApp) {
+            alert("Google Sign-In is blocked by Instagram/WhatsApp. Please tap the three dots (top right) and select 'Open in Chrome' or 'Open in Browser' to log in securely.");
+            return;
+        }
+
+        signInWithRedirect(auth, provider).catch(e => {
+            console.error(e);
+            alert("Login failed. Please open this website in standard Google Chrome or Safari to sign in.");
+        }); 
+    };
+
     window.logoutUser = () => { auth.signOut().then(() => { window.restoreHome(); }); };
     
-    // UPDATED NAVIGATION LOGIC (Never freezes)
     window.handleTabClick = (tab) => {
         window.showTargetTab(tab); 
     };
@@ -369,7 +381,6 @@
         if(tab === 'orders') { window.showSafe('orders-view'); window.scrollTo(0,0); loadMyTracking(); }
     };
 
-    // UPDATED PROFILE UI LOGIC
     onAuthStateChanged(auth, (user) => { 
         window.currentUser = user;
         if(user) { 
@@ -393,7 +404,6 @@
 
     const statusMap = { "Pending": 0, "Processing": 1, "Ready": 2, "Delivered": 3, "Complete": 4 };
 
-    // UPDATED TRACKING LOGIC
     async function loadMyTracking() {
         const list = document.getElementById('tracking-list-container');
         if(!window.currentUser) { 
