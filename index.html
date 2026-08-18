@@ -168,7 +168,8 @@
     <p style="margin: 0 0 20px 0; font-weight: 600; font-size: 1.2rem; letter-spacing: 2px; text-transform: uppercase; font-family: 'Playfair Display', serif;">Karvi Komfy</p>
     <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; flex-wrap: wrap;">
         <a href="#" onclick="showPolicy('contact')" style="color: var(--accent); text-decoration: none; font-size: 0.75rem; letter-spacing: 1px; font-family: 'Inter', sans-serif; text-transform: uppercase;">Contact Us</a>
-        <a href="#" onclick="showPolicy('refund')" style="color: var(--accent); text-decoration: none; font-size: 0.75rem; letter-spacing: 1px; font-family: 'Inter', sans-serif; text-transform: uppercase;">Shipping & Returns</a>
+        <a href="#" onclick="showPolicy('terms')" style="color: var(--accent); text-decoration: none; font-size: 0.75rem; letter-spacing: 1px; font-family: 'Inter', sans-serif; text-transform: uppercase;">Terms & Conditions</a>
+        <a href="#" onclick="showPolicy('refund')" style="color: var(--accent); text-decoration: none; font-size: 0.75rem; letter-spacing: 1px; font-family: 'Inter', sans-serif; text-transform: uppercase;">Refund Policy</a>
     </div>
     <p style="margin: 0; color: rgba(255,255,255,0.4); font-size: 0.75rem; font-family: 'Inter', sans-serif;">© 2026 Karvi Komfy. All Rights Reserved.</p>
 </footer>
@@ -188,7 +189,6 @@
         <h3 id="modal-price" style="color:var(--primary); margin:0 0 15px 0; font-size: 1.5rem; font-weight: 800;" class="font-inter"></h3>
         <div style="margin-bottom:25px;" class="font-inter"><span id="modal-rating-avg" style="color:var(--gold); font-size:1.1rem; font-weight: 600;">⭐ 5.0</span> <span id="modal-rating-count" style="font-size:0.85rem; color:#888;"></span></div>
         
-        <!-- PREMIUM PINCODE CHECKER -->
         <div class="pin-checker font-inter">
             <b style="font-size:0.85rem; text-transform:uppercase; color:var(--text); letter-spacing:1px;">Check Delivery Availability</b>
             <div class="pin-input-group">
@@ -353,7 +353,6 @@
     }
     window.updateIndicators = () => { const pSlider = document.getElementById('modal-carousel'); if(!pSlider) return; const index = Math.round(pSlider.scrollLeft / pSlider.clientWidth); const dots = document.querySelectorAll('.indicator'); dots.forEach((dot, i) => { if(i === index) dot.classList.add('active'); else dot.classList.remove('active'); }); };
 
-    // MOBILE FRIENDLY LOGIN SYSTEM
     setPersistence(auth, browserLocalPersistence);
 
     window.login = () => { signInWithRedirect(auth, provider).catch(e => console.error(e)); };
@@ -590,7 +589,6 @@
         document.getElementById('total').innerText = window.finalCheckoutTotal;
     }
 
-    // CHECKOUT ORDER CREATION
     document.getElementById('order-form').onsubmit = async (e) => { 
         e.preventDefault(); 
         const btn = document.getElementById('checkout-btn');
@@ -613,7 +611,6 @@
     window.hideSafe = function(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); };
     window.showSafe = function(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); };
     
-    // BULLETPROOF TAB SWITCHING
     window.switchMainTab = function(tab) {
         try {
             clearInterval(productCarouselInterval); 
@@ -650,7 +647,21 @@
     window.restoreHome = function() { window.resetViews(); window.switchMainTab('store'); window.scrollTo(0, 0); };
     window.activateNav = function(el) { if(!el) return; document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active'); };
     
-    window.showPolicy = function(type) { window.resetViews(); window.showSafe('policy-view'); window.scrollTo(0, 0); const title = document.getElementById('policy-title'); const content = document.getElementById('policy-content'); if (type === 'contact') { title.innerText = "Contact Us"; content.innerHTML = "<p><b>Karvi Komfy</b><br>Support Team</p><p>Phone: 9545335533 / 9545338833</p>"; } else if (type === 'refund') { title.innerText = "Shipping & Returns"; content.innerHTML = "<p>We offer free shipping on bundles of 2 or more.</p><p>In the event of transit damage or defects, please contact our support team within 48 hours for a replacement.</p>"; } };
+    window.showPolicy = function(type) {
+        window.resetViews(); window.showSafe('policy-view'); window.scrollTo(0, 0); 
+        const title = document.getElementById('policy-title'); const content = document.getElementById('policy-content'); 
+        
+        if (type === 'contact') { 
+            title.innerText = "Contact Us"; 
+            content.innerHTML = "<p><b>Karvi Komfy</b><br>Support Team</p><p>Email: karvikomfy@gmail.com</p><p>Phone: 9545335533 / 9545338833</p>"; 
+        } else if (type === 'terms') { 
+            title.innerText = "Terms & Conditions"; 
+            content.innerHTML = "<p>Welcome to Karvi Komfy. By accessing our website, you agree to these terms and conditions. We reserve the right to update or modify these terms at any time without prior notice.</p><p><b>1. Use of the Site:</b> You may use our website only for lawful purposes and in accordance with our policies.</p><p><b>2. Products & Pricing:</b> All products are subject to availability. We reserve the right to discontinue any product at any time. Prices for our products are subject to change without notice.</p><p><b>3. Intellectual Property:</b> All content on this site, including logos, text, graphics, and images, is the property of Karvi Komfy.</p><p><b>4. Limitation of Liability:</b> Karvi Komfy shall not be liable for any direct, indirect, incidental, or consequential damages arising from the use of our products or website.</p>"; 
+        } else if (type === 'refund') { 
+            title.innerText = "Refund Policy"; 
+            content.innerHTML = "<p>At Karvi Komfy, we strive to ensure you receive the highest quality premium travel comfort products. Please read our policy carefully.</p><p><b>1. Eligibility for Returns:</b> You have 7 days after receiving your item to request a return. To be eligible, your item must be in the same condition that you received it, unworn or unused, with tags, and in its original packaging.</p><p><b>2. Damages and Issues:</b> Please inspect your order upon reception. If the item is defective, damaged, or if you receive the wrong item, please contact us within 48 hours at karvikomfy@gmail.com with photo evidence so we can evaluate the issue and make it right.</p><p><b>3. Refunds:</b> Once we receive and inspect your return, we will notify you if the refund was approved. If approved, you will be automatically refunded on your original payment method. Please note it can take 5-7 business days for your bank or credit card company to process the refund.</p><p><b>4. Shipping Costs:</b> We offer free shipping on bundles of 2 or more. Return shipping costs are the responsibility of the customer unless the item was received damaged or incorrect.</p>"; 
+        } 
+    };
 
     window.liveSearch = () => {
         const query = document.getElementById('search-box').value.toLowerCase().trim(); const dropdown = document.getElementById('search-dropdown');
@@ -663,7 +674,6 @@
     };
     document.addEventListener('click', (e) => { if(!e.target.closest('.search-container')) { const dd = document.getElementById('search-dropdown'); if(dd) dd.style.display = 'none'; } });
 
-    // Initiate fetch
     load();
 </script>
 </body>
