@@ -711,17 +711,100 @@
         const btn = document.getElementById('checkout-btn');
         const user = auth.currentUser;
         
-        if(!user) { btn.innerText = "Please Sign In to Checkout"; setTimeout(() => { btn.innerText = "Complete Secure Purchase"; }, 2500); return window.login(); }
+        // 1. User Validation
+        if(!user) { 
+            btn.innerText = "Please Sign In to Checkout"; 
+            setTimeout(() => { btn.innerText = "Complete Secure Purchase"; }, 2500); 
+            return window.login(); 
+        }
         if(window.finalCheckoutTotal === 0) return alert("Your bag is empty.");
 
         btn.innerText = "Processing Order..."; btn.disabled = true;
-        const addr = `${document.getElementById('f-address').value}, ${document.getElementById('f-city').value}, PIN: ${document.getElementById('f-pin').value}`;
         
+        // 2. Gather form details
+        const name = document.getElementById('f-name').value;
+        const phone = document.getElementById('f-phone').value;
+        const addr = `${document.getElementById('f-address').value}, ${document.getElementById('f-city').value}, PIN: ${document.getElementById('f-pin').value}`;
+        const payMode = document.querySelector('input[name="pay_mode"]:checked')?.value || 'prepaid';
+
+        // ============================================
+        // 🟢 NEW WHATSAPP REDIRECT LOGIC FOR COD
+        // ============================================
+        if (payMode === 'cod') {
+            const codMsg = `*🚨 NEW KARVI ORDER (COD)*\n\n*Customer:* ${name}\n*Phone:* ${phone}\n*Address:* ${addr}\n\n*Items Ordered:*\n${window.currentCartItemsString}\n\n*Amount to Collect:* ₹${window.finalCheckoutTotal}`;
+            
+            try {
+                // Save order to Firebase Admin Panel
+                await addDoc(collection(db, "orders"), { 
+                    uid: user.uid, 
+                    name: name, 
+                    phone: phone, 
+                    address: addr, 
+                    items: window.currentCartItemsString, 
+                    total: window.finalCheckoutTotal, 
+                    status: "Pending COD", 
+                    payMode: "COD",
+                    date: new Date().toISOString(),
+                    cartData: cart
+                });
+                
+                // Trigger WhatsApp redirect (Using your floating widget number)
+                window.open(`https://wa.me/919545335533?text=${encodeURIComponent(codMsg)}`);
+                
+                // Clear cart and redirect to Orders tab
+                cart = {}; updateBadge(); appliedDiscount = 0; 
+                document.getElementById('cart-promo-input').value = ''; 
+                document.getElementById('order-form').reset();
+                window.renderCart();
+                
+                btn.innerText = "Order Sent to WhatsApp!"; 
+                setTimeout(() => { 
+                    btn.innerText = "Complete Secure Purchase"; 
+                    btn.disabled = false; 
+                    window.activateNav(document.querySelectorAll('.nav-item')[1]); 
+                    window.handleTabClick('orders'); 
+                }, 1500);
+
+            } catch (error) { 
+                console.error(error);
+                btn.innerText = "Error. Try Again."; 
+                setTimeout(() => { btn.innerText = "Complete Secure Purchase"; btn.disabled = false; }, 2500); 
+            }
+            return;
+        }
+
+        // ============================================
+        // 💳 ORIGINAL LOGIC FOR PREPAID ORDERS
+        // ============================================
         try {
-            await addDoc(collection(db, "orders"), { uid: user.uid, name: document.getElementById('f-name').value, phone: document.getElementById('f-phone').value, address: addr, items: window.currentCartItemsString, total: window.finalCheckoutTotal, status: "Processing", date: new Date().toISOString() });
-            cart = {}; updateBadge(); appliedDiscount = 0; document.getElementById('cart-promo-input').value = ''; document.getElementById('order-form').reset();
-            btn.innerText = "Order Successful!"; setTimeout(() => { btn.innerText = "Complete Secure Purchase"; btn.disabled = false; window.activateNav(document.querySelectorAll('.nav-item')[1]); window.handleTabClick('orders'); }, 1500);
-        } catch (error) { btn.innerText = "Error. Try Again."; setTimeout(() => { btn.innerText = "Complete Secure Purchase"; btn.disabled = false; }, 2500); }
+            await addDoc(collection(db, "orders"), { 
+                uid: user.uid, 
+                name: name, 
+                phone: phone, 
+                address: addr, 
+                items: window.currentCartItemsString, 
+                total: window.finalCheckoutTotal, 
+                status: "Processing",
+                payMode: "Prepaid", 
+                date: new Date().toISOString() 
+            });
+            
+            cart = {}; updateBadge(); appliedDiscount = 0; 
+            document.getElementById('cart-promo-input').value = ''; 
+            document.getElementById('order-form').reset();
+            window.renderCart();
+            
+            btn.innerText = "Order Successful!"; 
+            setTimeout(() => { 
+                btn.innerText = "Complete Secure Purchase"; 
+                btn.disabled = false; 
+                window.activateNav(document.querySelectorAll('.nav-item')[1]); 
+                window.handleTabClick('orders'); 
+            }, 1500);
+        } catch (error) { 
+            btn.innerText = "Error. Try Again."; 
+            setTimeout(() => { btn.innerText = "Complete Secure Purchase"; btn.disabled = false; }, 2500); 
+        }
     };
 
     window.togglePlatformTheme = function() { const currentTheme = document.documentElement.getAttribute('data-theme'); const targetTheme = currentTheme === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', targetTheme); };
