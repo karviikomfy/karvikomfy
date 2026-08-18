@@ -286,13 +286,13 @@
 <div id="profile-view" class="hidden" style="background:var(--card-bg); border-radius:16px; border:1px solid var(--border); padding:35px 25px; margin-top:20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
     <h2 style="color:var(--text); margin-top:0; font-family: 'Playfair Display', serif; font-size: 1.8rem;">My Profile</h2>
     <div style="display:flex; align-items:center; gap: 15px; border-bottom: 1px solid var(--border); padding-bottom: 25px; margin-bottom: 25px;">
-        <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--bg); display:flex; align-items:center; justify-content:center; border: 2px solid var(--primary); color: var(--primary); font-size: 1.5rem; font-weight: bold;" class="font-inter" id="prof-initial">K</div>
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--bg); display:flex; align-items:center; justify-content:center; border: 2px solid var(--primary); color: var(--primary); font-size: 1.5rem; font-weight: bold;" class="font-inter" id="prof-initial">?</div>
         <div>
-            <p style="font-size:1.2rem; font-weight:700; margin:0;" class="font-inter" id="prof-name-display"></p>
-            <p style="font-size:0.85rem; color:#888; margin:5px 0 0 0;" class="font-inter">Premium Member</p>
+            <p style="font-size:1.2rem; font-weight:700; margin:0;" class="font-inter" id="prof-name-display">Guest User</p>
+            <p style="font-size:0.85rem; color:#888; margin:5px 0 0 0;" class="font-inter" id="prof-status">Please log in</p>
         </div>
     </div>
-    <button onclick="logoutUser()" class="btn-cart" style="margin-top:20px; padding: 15px;">Secure Sign Out</button>
+    <button id="prof-action-btn" onclick="window.login()" class="btn-cart" style="margin-top:20px; padding: 15px;">Sign In with Google</button>
 </div>
 
 <div id="policy-view" class="hidden policy-view" style="background:var(--card-bg); border-radius:16px; border:1px solid var(--border); padding:35px 25px; margin-top:20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
@@ -358,12 +358,9 @@
     window.login = () => { signInWithRedirect(auth, provider).catch(e => console.error(e)); };
     window.logoutUser = () => { auth.signOut().then(() => { window.restoreHome(); }); };
     
+    // UPDATED NAVIGATION LOGIC (Never freezes)
     window.handleTabClick = (tab) => {
-        if(!window.currentUser) { 
-            window.login(); 
-        } else { 
-            window.showTargetTab(tab); 
-        } 
+        window.showTargetTab(tab); 
     };
 
     window.showTargetTab = (tab) => {
@@ -372,22 +369,39 @@
         if(tab === 'orders') { window.showSafe('orders-view'); window.scrollTo(0,0); loadMyTracking(); }
     };
 
+    // UPDATED PROFILE UI LOGIC
     onAuthStateChanged(auth, (user) => { 
         window.currentUser = user;
         if(user) { 
             const profDisplay = document.getElementById('prof-name-display'); 
             if(profDisplay) profDisplay.innerText = user.displayName; 
             document.getElementById('prof-initial').innerText = user.displayName.charAt(0).toUpperCase();
+            document.getElementById('prof-status').innerText = "Premium Member";
+            document.getElementById('prof-action-btn').innerText = "Secure Sign Out";
+            document.getElementById('prof-action-btn').setAttribute('onclick', 'window.logoutUser()');
             if(!document.getElementById('orders-view').classList.contains('hidden')) loadMyTracking(); 
+        } else {
+            const profDisplay = document.getElementById('prof-name-display'); 
+            if(profDisplay) profDisplay.innerText = "Guest User"; 
+            document.getElementById('prof-initial').innerText = "?";
+            document.getElementById('prof-status').innerText = "Please log in";
+            document.getElementById('prof-action-btn').innerText = "Sign In with Google";
+            document.getElementById('prof-action-btn').setAttribute('onclick', 'window.login()');
         }
         render(); if(!document.getElementById('cart-view').classList.contains('hidden')) window.renderCart();
     });
 
     const statusMap = { "Pending": 0, "Processing": 1, "Ready": 2, "Delivered": 3, "Complete": 4 };
 
+    // UPDATED TRACKING LOGIC
     async function loadMyTracking() {
-        if(!window.currentUser) return;
-        const list = document.getElementById('tracking-list-container'); list.innerHTML = 'Retrieving tracking data...';
+        const list = document.getElementById('tracking-list-container');
+        if(!window.currentUser) { 
+            list.innerHTML = "<div style='text-align:center; padding:40px;'><h3 style='color:var(--text); margin-bottom:10px;'>Sign In Required</h3><p style='color:#888; margin-bottom:20px;'>Please sign in to view your live tracking.</p><button onclick='window.login()' class='btn-buy' style='padding:12px 20px; width:auto;'>Sign In with Google</button></div>"; 
+            return; 
+        }
+        
+        list.innerHTML = 'Retrieving tracking data...';
         try {
             const q = query(collection(db, "orders"), where("uid", "==", window.currentUser.uid)); const snap = await getDocs(q);
             if(snap.empty) { list.innerHTML = "<div style='text-align:center; padding:40px;'><h3 style='color:var(--text); margin-bottom:10px;'>No Orders Yet</h3><p style='color:#888;'>Your premium journey begins with your first purchase.</p></div>"; return; }
