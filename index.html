@@ -466,7 +466,6 @@
                 let currentStatus = o.status || 'Pending';
                 let sLvl = statusMap[currentStatus] || 0;
 
-                // Mark cancelled orders cleanly for the customer
                 if (currentStatus === 'Cancelled') {
                     html += `
                     <div class="track-box" style="opacity: 0.75;">
@@ -500,16 +499,31 @@
 
     function generateCategories() {
         const catContainer = document.getElementById('dynamic-categories');
-        const tags = [...new Set(products.map(p => p.tag).filter(t => t && t.trim() !== ''))];
+        const categories = [...new Set(products.map(p => p.category).filter(c => c && c.trim() !== ''))];
+        
         let html = `<button class="cat-btn active" onclick="filterCategory('All', this)">All</button>`;
-        tags.forEach(tag => { html += `<button class="cat-btn" onclick="filterCategory('${tag}', this)">${tag}</button>`; });
+        categories.forEach(cat => { 
+            html += `<button class="cat-btn" onclick="filterCategory('${cat}', this)">${cat}</button>`; 
+        });
         catContainer.innerHTML = html;
     }
 
     window.filterCategory = (cat, btnElement) => { 
-        document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active')); if (btnElement) btnElement.classList.add('active');
-        const cards = document.querySelectorAll('.p-card'); const searchCat = cat.toLowerCase(); 
-        cards.forEach(card => { const badge = card.querySelector('.p-badge'); let hasTag = false; if (cat === 'All') hasTag = true; else if (badge && badge.innerText.toLowerCase().includes(searchCat)) hasTag = true; card.style.display = hasTag ? 'flex' : 'none'; }); 
+        document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active')); 
+        if (btnElement) btnElement.classList.add('active');
+        
+        const cards = document.querySelectorAll('.p-card'); 
+        const searchCat = cat.toLowerCase(); 
+        
+        cards.forEach(card => { 
+            const cardCat = card.getAttribute('data-category') || '';
+            let hasCat = false; 
+            
+            if (cat === 'All') hasCat = true; 
+            else if (cardCat.includes(searchCat)) hasCat = true; 
+            
+            card.style.display = hasCat ? 'flex' : 'none'; 
+        }); 
     };
 
     function getYouTubeEmbed(url) {
@@ -542,7 +556,6 @@
             const promoSnap = await getDoc(doc(db, "settings", "promos"));
             if(promoSnap.exists() && promoSnap.data().codes) allPromos = promoSnap.data().codes;
 
-            // 🚀 INSTANT LOAD CACHING
             const cachedProducts = localStorage.getItem('karvi_products_cache');
             if (cachedProducts) {
                 products = JSON.parse(cachedProducts);
@@ -550,7 +563,6 @@
                 render(); 
             }
 
-            // 🚀 REAL-TIME LIVE SYNC (NO REFRESH NEEDED)
             onSnapshot(collection(db, "products"), (snap) => {
                 products = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
                 localStorage.setItem('karvi_products_cache', JSON.stringify(products)); 
@@ -558,7 +570,6 @@
                 render(); 
             });
 
-            // 🚀 REAL-TIME VIDEOS
             onSnapshot(collection(db, "community_videos"), (vidSnap) => {
                 const feed = document.getElementById('reels-feed-container'); feed.innerHTML = '';
                 if(vidSnap.empty) { feed.innerHTML = `<p style="color:#888; text-align:center; padding-top:50px; font-family:'Playfair Display', serif; font-size: 1.2rem;">Visuals arriving shortly...</p>`; }
@@ -587,7 +598,6 @@
             
             let btnHtml = '';
             
-            // Out of Stock check
             if(p.outOfStock) {
                 btnHtml = `<div class="p-actions"><button class="btn-buy" style="background: #94a3b8; box-shadow: none; cursor: not-allowed; color: white;" disabled>OUT OF STOCK</button></div>`;
             } else if(hasVariants) {
@@ -598,11 +608,10 @@
                 btnHtml = q > 0 ? `<div class="p-qty"><button onclick="updateQty('${p.id}',-1,'Standard')">−</button><span style="font-weight:600; font-family: 'Inter', sans-serif; font-size: 1.1rem;">${q}</span><button onclick="updateQty('${p.id}',1,'Standard')">+</button></div>` : `<div class="p-actions" style="display:flex; gap:10px;"><button class="btn-cart" onclick="updateQty('${p.id}',1,'Standard')">Add</button><button class="btn-buy" onclick="buyNow('${p.id}', 'Standard')">Purchase</button></div>`;
             }
 
-            // Grayscale styling if out of stock
             const imgStyle = p.outOfStock ? 'filter: grayscale(100%); opacity: 0.6;' : '';
 
             grid.innerHTML += `
-            <div class="p-card">
+            <div class="p-card" data-category="${(p.category || '').toLowerCase()}">
                 ${badgeHtml}
                 <div class="p-img-container" onclick="openProduct('${p.id}')">
                     <img src="${mainImg}" class="p-img" loading="lazy" style="${imgStyle}">
@@ -665,7 +674,6 @@
         document.getElementById('modal-rating-avg').innerText = `⭐ ${avg}`; document.getElementById('modal-rating-count').innerText = `(${revCount} reviews)`;
         renderReviews(p.reviews || []);
 
-        // 🟢 Update Modal Buttons for Out of Stock
         const addBtn = document.getElementById('modal-add-btn');
         const buyBtn = document.getElementById('modal-buy-btn');
         const qtyControls = document.getElementById('modal-qty-controls');
@@ -895,7 +903,6 @@
         else if (type === 'refund') { title.innerText = "Return Policy"; content.innerHTML = "<p>At Karvi Komfy, we strive to ensure you receive the highest quality premium travel comfort products. Please read our policy carefully.</p><p><b>1. Eligibility for Returns:</b> You have 7 days after receiving your item to request a return. To be eligible, your item must be in the same condition that you received it, unworn or unused, with tags, and in its original packaging.</p><p><b>2. Damages and Issues:</b> Please inspect your order upon reception. If the item is defective, damaged, or if you receive the wrong item, please contact us within 48 hours with photo evidence so we can evaluate the issue and make it right.</p><p><b>3. Refunds:</b> Once we receive and inspect your return, we will notify you if the refund was approved. If approved, you will be automatically refunded on your original payment method. Please note it can take 5-7 business days for your bank or credit card company to process the refund.</p><p><b>4. Shipping Costs:</b> We offer complimentary shipping on bundles of 2 or more. Return shipping costs are the responsibility of the customer unless the item was received damaged or incorrect.</p>"; } 
     };
 
-    // ✨ PREMIUM LIVE SEARCH WITH PRODUCT THUMBNAILS & PRICING
     window.liveSearch = () => {
         const query = document.getElementById('search-box').value.toLowerCase().trim();
         const dropdown = document.getElementById('search-dropdown');
