@@ -6,21 +6,19 @@
     <link rel="icon" type="image/png" href="logo.png">
     <title>Karvi Komfy | Premium Travel Comfort</title>
     
-    <!-- Added beautiful luxury fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     
     <style>
-        /* 👑 ULTRA PREMIUM LUXURY PALETTE */
         :root { 
-            --primary: #C5A059;       /* Champagne Gold */
-            --primary-dark: #A38446;  /* Deep Gold */
-            --navy: #0A0A0A;          /* Midnight Charcoal (Almost Black) */
-            --bg: #FAFAF9;            /* Warm Pearl White */
-            --text: #1C1C1C;          /* Soft Black */
-            --card-bg: #FFFFFF;       /* Pure White */
-            --border: rgba(197, 160, 89, 0.2); /* Delicate Gold Border */
+            --primary: #C5A059;       
+            --primary-dark: #A38446;  
+            --navy: #0A0A0A;          
+            --bg: #FAFAF9;            
+            --text: #1C1C1C;          
+            --card-bg: #FFFFFF;       
+            --border: rgba(197, 160, 89, 0.2); 
             --whatsapp: #25D366; 
             --gold: #D4AF37; 
         }
@@ -38,14 +36,12 @@
         button, input, textarea, .p-badge, .nav-item span, .wa-text, .cat-btn, .font-inter { font-family: 'Inter', sans-serif; }
         .hidden { display: none !important; }
 
-        /* Hide Google Translate Junk */
         .goog-te-banner-frame, .skiptranslate iframe, .goog-tooltip, .goog-te-gadget-icon, .goog-te-gadget-simple img { display: none !important; }
         body, html { top: 0px !important; }
         #google_translate_element { display: inline-block; }
         .goog-te-gadget-simple { background-color: transparent !important; border: 1px solid var(--border) !important; border-radius: 30px !important; padding: 4px 12px !important; display: flex !important; align-items: center !important; cursor: pointer; height: 28px; box-sizing: border-box; }
         .goog-te-gadget-simple span { color: var(--text) !important; font-size: 0.75rem !important; font-weight: 400 !important; border: none !important; text-transform: uppercase; letter-spacing: 1px;}
         
-        /* ✨ BOUTIQUE HEADER */
         header { background: rgba(250, 250, 249, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); color: var(--navy); padding: 15px 12px; position: sticky; top: 0; z-index: 2000; border-bottom: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.02); transition: background 0.4s ease; border-top: 3px solid var(--primary);}
         [data-theme="dark"] header { background: rgba(10, 10, 10, 0.85); }
         .h-row { display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 0 auto; }
@@ -70,7 +66,6 @@
         .slide img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
         @media (min-width: 768px) { .slide { min-width: 48%; height: 300px; } }
 
-        /* ✨ ELEGANT CATEGORY PILLS */
         .cat-btn { background: transparent; color: var(--text); border: 1px solid var(--border); padding: 10px 24px; border-radius: 50px; font-weight: 400; white-space: nowrap; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); letter-spacing: 1px;}
         .cat-btn.active { background: var(--navy); color: white; border-color: var(--navy); box-shadow: 0 8px 20px rgba(0,0,0,0.15);}
         [data-theme="dark"] .cat-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 8px 20px rgba(197, 160, 89, 0.2);}
@@ -80,7 +75,6 @@
         .variant-pill.active { background: var(--navy); border-color: var(--navy); color: white; box-shadow: 0 6px 15px rgba(0,0,0,0.1);}
         [data-theme="dark"] .variant-pill.active { background: var(--primary); border-color: var(--primary); color: white; }
 
-        /* ✨ HIGH-END PRODUCT CARDS */
         .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; padding: 20px 15px; background: var(--bg); max-width: 1200px; margin: 0 auto;}
         .p-card { background: var(--card-bg); border-radius: 24px; border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.03); transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s ease; }
         .p-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
@@ -96,7 +90,6 @@
         .p-price-row { margin-bottom: 20px; }
         .p-price { color: var(--text); font-size: 1.1rem; font-weight: 600; font-family: 'Inter', sans-serif;}
         
-        /* ✨ LUXURY BUTTONS */
         .btn-cart { background: transparent; border: 1px solid var(--navy); color: var(--navy); padding: 14px 0; border-radius: 50px; font-weight: 400; flex: 1; font-size: 0.75rem; cursor: pointer; text-transform: uppercase; width:100%; margin-bottom:10px; transition: 0.4s; letter-spacing: 2px;}
         .btn-cart:hover { background: var(--navy); color: white;}
         [data-theme="dark"] .btn-cart { border-color: var(--primary); color: var(--primary); }
@@ -117,7 +110,6 @@
         input, textarea { width: 100%; padding: 16px; border: 1px solid var(--border); border-radius: 12px; box-sizing: border-box; margin-bottom: 15px; font-size: 0.95rem; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; transition: border-color 0.4s, box-shadow 0.4s;}
         input:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.1); background: var(--card-bg);}
         
-        /* ✨ FLOATING BOTTOM NAV */
         .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 600px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); box-shadow: 0 15px 40px rgba(0,0,0,0.08); display: flex; justify-content: space-around; align-items: center; z-index: 5000; border: 1px solid var(--border); padding: 12px 10px; box-sizing: border-box; border-radius: 50px;}
         [data-theme="dark"] .bottom-nav { background: rgba(15, 15, 15, 0.85); }
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; color: #888; cursor: pointer; transition: all 0.4s ease; position: relative; }
@@ -128,7 +120,6 @@
         .nav-item.active span { opacity: 1; transform: translateY(0); }
         .nav-badge { position: absolute; top: -8px; right: 25px; background: var(--navy); color: var(--primary); border-radius: 50%; padding: 2px 6px; font-size: 0.6rem; font-weight: 600; min-width: 16px; text-align: center; border: 1.5px solid var(--card-bg); box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
 
-        /* ✨ WHATSAPP BUTTON */
         .wa-float { position: fixed; bottom: 100px; right: 20px; background-color: var(--whatsapp); color: white; border-radius: 50px; padding: 14px 24px; display: flex; align-items: center; gap: 10px; z-index: 4000; box-shadow: 0 10px 25px rgba(37, 211, 102, 0.3); text-decoration: none; font-weight: 400; font-family: 'Inter', sans-serif; transition: transform 0.4s, box-shadow 0.4s; letter-spacing: 1px;}
         .wa-float:hover { transform: translateY(-4px); box-shadow: 0 15px 30px rgba(37, 211, 102, 0.4);}
         .wa-icon { width: 22px; height: 22px; fill: currentColor; }
@@ -814,7 +805,12 @@
                 document.getElementById('tab-videos').className = 'tab-btn-main active'; 
                 document.getElementById('tab-store').className = 'tab-btn-main inactive'; 
                 
-                window.hideSafe('t-offer-banner'); window.hideSafe('home-banner-section'); window.hideSafe('search-section'); window.hideSafe('main-view'); window.hideSafe('site-footer'); window.showSafe('videos-view'); 
+                window.hideSafe('t-offer-banner'); 
+                window.hideSafe('home-banner-section'); 
+                window.hideSafe('search-section'); 
+                window.hideSafe('main-view'); 
+                window.hideSafe('site-footer'); 
+                window.showSafe('videos-view'); 
             }
         } catch(e) { console.error("Navigation error:", e); }
     };
@@ -832,15 +828,36 @@
         else if (type === 'refund') { title.innerText = "Return Policy"; content.innerHTML = "<p>At Karvi Komfy, we strive to ensure you receive the highest quality premium travel comfort products. Please read our policy carefully.</p><p><b>1. Eligibility for Returns:</b> You have 7 days after receiving your item to request a return. To be eligible, your item must be in the same condition that you received it, unworn or unused, with tags, and in its original packaging.</p><p><b>2. Damages and Issues:</b> Please inspect your order upon reception. If the item is defective, damaged, or if you receive the wrong item, please contact us within 48 hours with photo evidence so we can evaluate the issue and make it right.</p><p><b>3. Refunds:</b> Once we receive and inspect your return, we will notify you if the refund was approved. If approved, you will be automatically refunded on your original payment method. Please note it can take 5-7 business days for your bank or credit card company to process the refund.</p><p><b>4. Shipping Costs:</b> We offer complimentary shipping on bundles of 2 or more. Return shipping costs are the responsibility of the customer unless the item was received damaged or incorrect.</p>"; } 
     };
 
+    // ✨ SEARCH DROPDOWN WITH IMAGES & PRICES
     window.liveSearch = () => {
-        const query = document.getElementById('search-box').value.toLowerCase().trim(); const dropdown = document.getElementById('search-dropdown');
-        if(!query) { dropdown.style.display = 'none'; return; }
-        const cards = document.querySelectorAll('.p-card'); let results = [];
-        cards.forEach(card => { const name = card.querySelector('h4').innerText; if(name.toLowerCase().includes(query)) results.push({name: name, onclick: card.querySelector('.p-img-container').getAttribute('onclick')}); });
-        if(results.length === 0) { dropdown.innerHTML = '<div style="padding:20px; color:#888; text-align:center; font-family:\'Playfair Display\', serif;">Collection not found</div>'; } 
-        else { dropdown.innerHTML = results.map(item => `<div onclick="document.getElementById('search-dropdown').style.display='none'; ${item.onclick}" style="display:flex; align-items:center; gap:15px; padding:15px; border-bottom:1px solid var(--border); cursor:pointer;"><div style="flex:1;"><b style="font-size:0.95rem; color:var(--text); font-weight:400; font-family:\'Playfair Display\', serif;">${item.name}</b></div></div>`).join(''); }
+        const query = document.getElementById('search-box').value.toLowerCase().trim();
+        const dropdown = document.getElementById('search-dropdown');
+        if (!query) { dropdown.style.display = 'none'; return; }
+
+        let results = products.filter(p => 
+            p.name.toLowerCase().includes(query) || 
+            (p.tag && p.tag.toLowerCase().includes(query))
+        );
+
+        if (results.length === 0) {
+            dropdown.innerHTML = '<div style="padding:25px; color:#888; text-align:center; font-family:\'Playfair Display\', serif; font-size: 1rem;">No matching items found</div>';
+        } else {
+            dropdown.innerHTML = results.map(p => {
+                const mainImg = p.images && p.images.length > 0 ? p.images[0] : (p.image || 'logo.png');
+                return `
+                <div onclick="document.getElementById('search-dropdown').style.display='none'; openProduct('${p.id}')" style="display:flex; align-items:center; gap:15px; padding:12px 18px; border-bottom:1px solid var(--border); cursor:pointer; transition: background 0.2s;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='transparent'">
+                    <img src="${mainImg}" style="width:48px; height:48px; border-radius:12px; object-fit:contain; background:#fafafa; border:1px solid var(--border); padding:3px; flex-shrink:0;">
+                    <div style="flex:1;">
+                        <b style="font-size:0.95rem; color:var(--text); font-family:'Playfair Display', serif; display:block; line-height:1.3;">${p.name}</b>
+                        <span style="color:var(--primary); font-size:0.85rem; font-weight:600; font-family:'Inter', sans-serif;">₹${p.price}</span>
+                    </div>
+                    <span style="color:#888; font-size:0.8rem;">→</span>
+                </div>`;
+            }).join('');
+        }
         dropdown.style.display = 'block';
     };
+
     document.addEventListener('click', (e) => { if(!e.target.closest('.search-container')) { const dd = document.getElementById('search-dropdown'); if(dd) dd.style.display = 'none'; } });
 
     load();
