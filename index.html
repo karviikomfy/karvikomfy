@@ -378,7 +378,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, addDoc, query, where, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, addDoc, query, where, arrayUnion, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = { apiKey: "AIzaSyBw4wX5g8n314AYy1btlYxblfFNsO6tKQ0", authDomain: "karvikomfy-d4d0d.firebaseapp.com", projectId: "karvikomfy-d4d0d", storageBucket: "karvikomfy-d4d0d.firebasestorage.app", messagingSenderId: "28564797585", appId: "1:28564797585:web:9336b34b708fe6dc33e730" };
@@ -466,20 +466,33 @@
                 let currentStatus = o.status || 'Pending';
                 let sLvl = statusMap[currentStatus] || 0;
 
-                html += `
-                <div class="track-box">
-                    <div class="track-header">
-                        <div><span style="color:#888; font-size:0.7rem; text-transform:uppercase; letter-spacing:1.5px; display:block; margin-bottom:6px;">Order Confirmed</span><b style="color:var(--text); font-size:0.95rem;">${new Date(o.date).toLocaleDateString()}</b></div>
-                        <div style="text-align:right;"><span style="color:#888; font-size:0.7rem; text-transform:uppercase; letter-spacing:1.5px; display:block; margin-bottom:6px;">Total</span><b style="color:var(--text); font-size:1.1rem; font-family: 'Inter', sans-serif;">₹${o.total}</b></div>
-                    </div>
-                    <p style="font-size:0.9rem; color:#666; line-height:1.8; margin-bottom: 25px;"><b style="color: var(--text);">Selection:</b> ${o.items}</p>
-                    <div class="timeline">
-                        <div class="timeline-step ${sLvl >= 1 ? 'completed' : ''} ${sLvl === 1 ? 'active' : ''}"><div class="timeline-dot">✓</div><span class="timeline-label">Processing</span></div>
-                        <div class="timeline-step ${sLvl >= 2 ? 'completed' : ''} ${sLvl === 2 ? 'active' : ''}"><div class="timeline-dot">✓</div><span class="timeline-label">Ready</span></div>
-                        <div class="timeline-step ${sLvl >= 3 ? 'completed' : ''} ${sLvl === 3 ? 'active' : ''}"><div class="timeline-dot">✓</div><span class="timeline-label">Delivered</span></div>
-                        <div class="timeline-step ${sLvl >= 4 ? 'completed' : ''} ${sLvl === 4 ? 'active' : ''}"><div class="timeline-dot">★</div><span class="timeline-label">Complete</span></div>
-                    </div>
-                </div>`; 
+                // Mark cancelled orders cleanly for the customer
+                if (currentStatus === 'Cancelled') {
+                    html += `
+                    <div class="track-box" style="opacity: 0.75;">
+                        <div class="track-header" style="border-bottom: 1px solid #ef4444;">
+                            <div><span style="color:#ef4444; font-size:0.7rem; text-transform:uppercase; letter-spacing:1.5px; display:block; margin-bottom:6px;">Order Cancelled</span><b style="color:var(--text); font-size:0.95rem;">${new Date(o.date).toLocaleDateString()}</b></div>
+                            <div style="text-align:right;"><span style="color:#888; font-size:0.7rem; text-transform:uppercase; letter-spacing:1.5px; display:block; margin-bottom:6px;">Total</span><b style="color:var(--text); font-size:1.1rem; text-decoration: line-through; font-family: 'Inter', sans-serif;">₹${o.total}</b></div>
+                        </div>
+                        <p style="font-size:0.9rem; color:#666; line-height:1.8;"><b style="color: var(--text);">Selection:</b> ${o.items}</p>
+                        <p style="font-size:0.85rem; color:#ef4444; font-weight: 600; margin-top: 15px;">This order was cancelled due to item unavailability or by admin request.</p>
+                    </div>`;
+                } else {
+                    html += `
+                    <div class="track-box">
+                        <div class="track-header">
+                            <div><span style="color:#888; font-size:0.7rem; text-transform:uppercase; letter-spacing:1.5px; display:block; margin-bottom:6px;">Order Confirmed</span><b style="color:var(--text); font-size:0.95rem;">${new Date(o.date).toLocaleDateString()}</b></div>
+                            <div style="text-align:right;"><span style="color:#888; font-size:0.7rem; text-transform:uppercase; letter-spacing:1.5px; display:block; margin-bottom:6px;">Total</span><b style="color:var(--text); font-size:1.1rem; font-family: 'Inter', sans-serif;">₹${o.total}</b></div>
+                        </div>
+                        <p style="font-size:0.9rem; color:#666; line-height:1.8; margin-bottom: 25px;"><b style="color: var(--text);">Selection:</b> ${o.items}</p>
+                        <div class="timeline">
+                            <div class="timeline-step ${sLvl >= 1 ? 'completed' : ''} ${sLvl === 1 ? 'active' : ''}"><div class="timeline-dot">✓</div><span class="timeline-label">Processing</span></div>
+                            <div class="timeline-step ${sLvl >= 2 ? 'completed' : ''} ${sLvl === 2 ? 'active' : ''}"><div class="timeline-dot">✓</div><span class="timeline-label">Ready</span></div>
+                            <div class="timeline-step ${sLvl >= 3 ? 'completed' : ''} ${sLvl === 3 ? 'active' : ''}"><div class="timeline-dot">✓</div><span class="timeline-label">Delivered</span></div>
+                            <div class="timeline-step ${sLvl >= 4 ? 'completed' : ''} ${sLvl === 4 ? 'active' : ''}"><div class="timeline-dot">★</div><span class="timeline-label">Complete</span></div>
+                        </div>
+                    </div>`; 
+                }
             });
             list.innerHTML = html;
         } catch(e) { list.innerHTML = "<p>Error retrieving tracking.</p>"; }
@@ -529,26 +542,40 @@
             const promoSnap = await getDoc(doc(db, "settings", "promos"));
             if(promoSnap.exists() && promoSnap.data().codes) allPromos = promoSnap.data().codes;
 
-            const snap = await getDocs(collection(db, "products")); 
-            products = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
-            generateCategories(); render();
-
-            const vidSnap = await getDocs(collection(db, "community_videos"));
-            const feed = document.getElementById('reels-feed-container'); feed.innerHTML = '';
-            if(vidSnap.empty) { feed.innerHTML = `<p style="color:#888; text-align:center; padding-top:50px; font-family:'Playfair Display', serif; font-size: 1.2rem;">Visuals arriving shortly...</p>`; }
-            else {
-                vidSnap.forEach(doc => {
-                    const v = doc.data(); const embed = getYouTubeEmbed(v.url) || v.url;
-                    feed.innerHTML += `<div class="vid-card"><h3>${v.title}</h3><div class="vid-iframe-wrapper"><iframe src="${embed}" allowfullscreen loading="lazy"></iframe></div></div>`;
-                });
+            // 🚀 INSTANT LOAD CACHING
+            const cachedProducts = localStorage.getItem('karvi_products_cache');
+            if (cachedProducts) {
+                products = JSON.parse(cachedProducts);
+                generateCategories(); 
+                render(); 
             }
+
+            // 🚀 REAL-TIME LIVE SYNC (NO REFRESH NEEDED)
+            onSnapshot(collection(db, "products"), (snap) => {
+                products = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
+                localStorage.setItem('karvi_products_cache', JSON.stringify(products)); 
+                generateCategories(); 
+                render(); 
+            });
+
+            // 🚀 REAL-TIME VIDEOS
+            onSnapshot(collection(db, "community_videos"), (vidSnap) => {
+                const feed = document.getElementById('reels-feed-container'); feed.innerHTML = '';
+                if(vidSnap.empty) { feed.innerHTML = `<p style="color:#888; text-align:center; padding-top:50px; font-family:'Playfair Display', serif; font-size: 1.2rem;">Visuals arriving shortly...</p>`; }
+                else {
+                    vidSnap.forEach(doc => {
+                        const v = doc.data(); const embed = getYouTubeEmbed(v.url) || v.url;
+                        feed.innerHTML += `<div class="vid-card"><h3>${v.title}</h3><div class="vid-iframe-wrapper"><iframe src="${embed}" allowfullscreen loading="lazy"></iframe></div></div>`;
+                    });
+                }
+            });
+
         } catch(e) { console.error("Firebase Error:", e); }
     }
 
     window.triggerCartFlow = () => { window.showCart(); };
     window.showCart = () => { window.resetViews(); window.showSafe('cart-view'); window.scrollTo(0, 0); window.renderCart(); };
 
-    // 🟢 UPDATED RENDER FUNCTION WITH OUT OF STOCK LOGIC
     function render() {
         const grid = document.getElementById('main-view'); grid.innerHTML = '';
         if (products.length === 0) { grid.innerHTML = `<p style="text-align:center; color:#888; grid-column: 1 / -1; padding: 50px; font-family: 'Playfair Display', serif; font-size: 1.2rem;">The collection is currently being updated.</p>`; return; }
