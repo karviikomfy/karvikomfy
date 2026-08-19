@@ -66,11 +66,8 @@
         </div>
 
         <div class="main-content">
-            <!-- ORDERS TAB -->
             <div id="sec-orders" class="section-view active">
                 <h1>Order Management</h1>
-                
-                <!-- NEW STATS DASHBOARD -->
                 <div class="card flex-row" style="padding: 25px; align-items: center; justify-content: space-around;">
                     <div style="text-align: center;">
                         <p style="margin: 0 0 5px 0; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.85rem;">Total Valid Orders</p>
@@ -82,11 +79,9 @@
                         <h2 id="stat-ord-rev" style="margin: 0; color: #10B981; font-size: 2.5rem;">₹0</h2>
                     </div>
                 </div>
-
                 <div id="admin-orders-list"></div>
             </div>
 
-            <!-- PRODUCTS TAB -->
             <div id="sec-products" class="section-view">
                 <h1>Products Catalog</h1>
                 <div class="card" id="product-form-card">
@@ -139,7 +134,6 @@
                 </div>
             </div>
 
-            <!-- VIDEOS TAB -->
             <div id="sec-videos" class="section-view">
                 <h1>Community Videos (Reels)</h1>
                 <div class="card">
@@ -156,7 +150,6 @@
                 </div>
             </div>
 
-            <!-- PROMOS TAB -->
             <div id="sec-promos" class="section-view">
                 <h1>Promo Codes</h1>
                 <div class="card">
@@ -173,7 +166,6 @@
                 </div>
             </div>
 
-            <!-- SETTINGS TAB -->
             <div id="sec-settings" class="section-view">
                 <h1>Store Settings</h1>
                 <div class="card">
@@ -219,6 +211,15 @@
         window.allProducts = [];
         window.editingProductId = null;
 
+        window.showToast = (msg, isError = false) => {
+            const toast = document.createElement('div');
+            toast.innerText = msg;
+            toast.style.cssText = `position:fixed; top:20px; right:20px; background:${isError ? '#ef4444' : '#10B981'}; color:white; padding:14px 24px; border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,0.15); z-index:10000; font-family:'Inter', sans-serif; font-weight:600; font-size:0.9rem; transition: opacity 0.4s ease, transform 0.4s ease; transform: translateY(-20px); opacity: 0;`;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.transform = 'translateY(0)'; toast.style.opacity = '1'; }, 10);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(-20px)'; setTimeout(() => toast.remove(), 400); }, 3000);
+        };
+
         window.attemptLogin = () => { if (document.getElementById('admin-user').value === 'karvi' && document.getElementById('admin-pass').value === 'karvi0123') { document.getElementById('login-screen').style.display = 'none'; document.getElementById('dashboard').style.display = 'flex'; loadProducts(); loadOrders(); loadPromos(); loadStoreSettings(); loadCommunityVideos(); } else { document.getElementById('login-error').style.display = 'block'; } };
         window.logout = () => { location.reload(); };
         window.switchTab = (tabId, btnElement) => { document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active')); document.querySelectorAll('.section-view').forEach(sec => sec.classList.remove('active')); btnElement.classList.add('active'); document.getElementById('sec-' + tabId).classList.add('active'); };
@@ -227,9 +228,6 @@
 
         async function uploadFileToImgBB(file) { const formData = new FormData(); formData.append('image', file); const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData }); const data = await res.json(); if(data.success) return data.data.url; throw new Error("Image upload failed"); }
 
-        // ==========================================
-        // 🛍️ PRODUCTS INVENTORY LOGIC (EDIT, BADGE, OOS)
-        // ==========================================
         window.loadProducts = async () => { 
             onSnapshot(collection(db, "products"), (snapshot) => { 
                 const tbody = document.getElementById('products-table-body'); tbody.innerHTML = ''; 
@@ -237,7 +235,7 @@
 
                 window.allProducts.forEach(p => { 
                     const mainImg = p.images && p.images.length > 0 ? p.images[0] : ''; 
-                    const oosColor = p.outOfStock ? 'color: #b91c1c; font-weight: bold;' : 'color: #10B981; font-weight: bold;';
+                    const oosColor = p.outOfStock ? 'color: #ef4444; font-weight: bold;' : 'color: #10B981; font-weight: bold;';
                     const oosText = p.outOfStock ? 'Out of Stock' : 'In Stock';
 
                     tbody.innerHTML += `
@@ -259,7 +257,7 @@
         };
 
         window.toggleOOS = async (id, isOOS) => {
-            try { await updateDoc(doc(db, "products", id), { outOfStock: isOOS }); } catch(e) { alert("Failed to update stock status."); }
+            try { await updateDoc(doc(db, "products", id), { outOfStock: isOOS }); window.showToast("Stock status updated successfully"); } catch(e) { window.showToast("Failed to update stock status.", true); }
         };
 
         window.addVariantRow = () => {
@@ -277,7 +275,7 @@
             const outOfStock = document.getElementById('prod-oos').checked;
             const fileInput = document.getElementById('prod-images'); 
             
-            if(!name) return alert("Product Name is required."); 
+            if(!name) return window.showToast("Error: Product Name is required.", true); 
             
             let variants = [];
             document.querySelectorAll('.variant-row').forEach(row => {
@@ -298,30 +296,26 @@
                     }
                 }
 
-                let productData = { 
-                    name, price, category, tag: badgeTag, desc, variants, video: videoUrl, outOfStock 
-                };
+                let productData = { name, price, category, tag: badgeTag, desc, variants, video: videoUrl, outOfStock };
                 
-                if(uploadedImages.length > 0) {
-                    productData.images = uploadedImages;
-                }
+                if(uploadedImages.length > 0) { productData.images = uploadedImages; }
 
                 if(window.editingProductId) {
                     await updateDoc(doc(db, "products", window.editingProductId), productData);
-                    alert("Product Successfully Updated!");
+                    window.showToast("Product updated successfully!");
                     window.cancelEdit();
                 } else {
                     if(uploadedImages.length === 0) {
                         btn.disabled = false; loader.style.display = 'none';
-                        return alert("Please upload at least one image for new products.");
+                        return window.showToast("Error: Please upload at least one image.", true);
                     }
                     productData.reviews = [];
                     await addDoc(collection(db, "products"), productData);
-                    alert("New Product Saved!");
-                    window.cancelEdit(); // Clears form
+                    window.showToast("New Product added successfully!");
+                    window.cancelEdit(); 
                 }
 
-            } catch(e) { alert("Error: " + e.message); } 
+            } catch(e) { window.showToast("Error: " + e.message, true); } 
             
             btn.disabled = false; loader.style.display = 'none'; 
         };
@@ -370,12 +364,8 @@
             document.getElementById('variants-container').innerHTML = '';
         };
 
-        window.deleteProduct = async (id) => { if(confirm("Permanently delete this product?")) await deleteDoc(doc(db, "products", id)); };
+        window.deleteProduct = async (id) => { if(confirm("Permanently delete this product?")) { try { await deleteDoc(doc(db, "products", id)); window.showToast("Product deleted"); } catch(e) { window.showToast("Error deleting product", true); } } };
 
-
-        // ==========================================
-        // 📦 ORDERS LOGIC (DASHBOARD STATS & ACTIONS)
-        // ==========================================
         window.loadOrders = async () => {
             onSnapshot(collection(db, "orders"), (snapshot) => {
                 const ordersContainer = document.getElementById('admin-orders-list');
@@ -395,27 +385,24 @@
                     const orderData = doc.data();
                     ordersArray.push({ id: doc.id, ...orderData });
                     
-                    // Dashboard Calculation (Exclude Cancelled)
                     if(orderData.status !== "Cancelled") {
                         totalRev += Number(orderData.total) || 0;
                         totalOrd++;
                     }
                 });
                 
-                // Update Dashboard Elements
                 document.getElementById('stat-ord-count').innerText = totalOrd;
                 document.getElementById('stat-ord-rev').innerText = "₹" + totalRev.toLocaleString('en-IN');
 
-                // Sort latest orders first
                 ordersArray.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
                 let html = '';
                 ordersArray.forEach(order => {
                     const orderDate = order.date ? new Date(order.date).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A';
                     
-                    let payBadgeColor = '#10B981'; // Green for prepaid
-                    if(order.payMode === 'COD') payBadgeColor = '#F59E0B'; // Orange for COD
-                    if(order.status === 'Cancelled') payBadgeColor = '#ef4444'; // Red if cancelled
+                    let payBadgeColor = '#10B981'; 
+                    if(order.payMode === 'COD') payBadgeColor = '#F59E0B'; 
+                    if(order.status === 'Cancelled') payBadgeColor = '#ef4444'; 
 
                     html += `
                     <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border, #e2e8f0); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
@@ -449,7 +436,6 @@
                             </div>
                         </div>
 
-                        <!-- ACTIONS FOOTER -->
                         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; border-top: 1px solid var(--border, #e2e8f0); padding-top: 15px;">
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <span style="font-size: 0.85rem; font-weight: 600; color: #64748b;">Status:</span>
@@ -481,36 +467,33 @@
             });
         };
 
-        window.updateOrderStatus = async (id, newStatus) => { try { await updateDoc(doc(db, "orders", id), { status: newStatus }); } catch(e) { alert("Failed to update status"); } };
+        window.updateOrderStatus = async (id, newStatus) => { try { await updateDoc(doc(db, "orders", id), { status: newStatus }); window.showToast("Order status updated!"); } catch(e) { window.showToast("Failed to update status", true); } };
         
         window.cancelOrder = async (id) => { 
             if(confirm("Cancel this order? It will deduct from your revenue and notify the customer.")) { 
-                try { await updateDoc(doc(db, "orders", id), { status: "Cancelled" }); } catch(e) { alert("Action failed."); } 
+                try { await updateDoc(doc(db, "orders", id), { status: "Cancelled" }); window.showToast("Order Cancelled!"); } catch(e) { window.showToast("Action failed.", true); } 
             } 
         };
 
         window.deleteOrder = async (id) => { 
             if(confirm("Permanently delete this order from database? This cannot be undone.")) { 
-                try { await deleteDoc(doc(db, "orders", id)); } catch(e) { alert("Delete failed."); } 
+                try { await deleteDoc(doc(db, "orders", id)); window.showToast("Order deleted."); } catch(e) { window.showToast("Delete failed.", true); } 
             } 
         };
 
-        // ==========================================
-        // SETTINGS & OTHER ADMIN LOGIC
-        // ==========================================
         window.loadCommunityVideos = async () => { onSnapshot(collection(db, "community_videos"), (snapshot) => { const tbody = document.getElementById('videos-table-body'); tbody.innerHTML = ''; snapshot.forEach(doc => { const v = doc.data(); tbody.innerHTML += `<tr><td>${v.title}</td><td><a href="${v.url}" target="_blank" style="color:var(--primary); font-size:0.8rem;">View Link</a></td><td><button class="action-btn delete-btn" onclick="deleteCommunityVideo('${doc.id}')">Remove</button></td></tr>`; }); }); };
-        window.addCommunityVideo = async () => { const title = document.getElementById('vid-title').value; const url = document.getElementById('vid-url').value; if(!url) return alert("URL is required"); try { await addDoc(collection(db, "community_videos"), { title, url }); document.getElementById('vid-title').value = ''; document.getElementById('vid-url').value = ''; } catch(e) { alert(e.message); } };
-        window.deleteCommunityVideo = async (id) => { if(confirm("Remove this reel?")) await deleteDoc(doc(db, "community_videos", id)); };
+        window.addCommunityVideo = async () => { const title = document.getElementById('vid-title').value; const url = document.getElementById('vid-url').value; if(!url) return window.showToast("Error: URL is required", true); try { await addDoc(collection(db, "community_videos"), { title, url }); document.getElementById('vid-title').value = ''; document.getElementById('vid-url').value = ''; window.showToast("Video added successfully!"); } catch(e) { window.showToast(e.message, true); } };
+        window.deleteCommunityVideo = async (id) => { if(confirm("Remove this reel?")) { await deleteDoc(doc(db, "community_videos", id)); window.showToast("Video removed."); } };
 
         window.loadPromos = async () => { onSnapshot(doc(db, "settings", "promos"), (docSnap) => { const tbody = document.getElementById('promos-table-body'); tbody.innerHTML = ''; if(docSnap.exists() && docSnap.data().codes) { docSnap.data().codes.forEach(c => { tbody.innerHTML += `<tr><td><b>${c.code}</b></td><td>₹${c.discount}</td><td>₹${c.minOrder}</td><td><button class="action-btn delete-btn" onclick="deletePromo('${c.code}')">Remove</button></td></tr>`; }); } }); };
-        window.addPromo = async () => { const code = document.getElementById('promo-code').value.toUpperCase(); const discount = parseInt(document.getElementById('promo-discount').value); const minOrder = parseInt(document.getElementById('promo-min').value); if(!code || !discount) return alert("Code and Discount required."); try { await setDoc(doc(db, "settings", "promos"), { codes: arrayUnion({code, discount, minOrder: minOrder || 0}) }, { merge: true }); alert("Promo Added!"); } catch(e) { alert(e.message); } };
-        window.deletePromo = async (codeStr) => { if(!confirm("Remove this promo?")) return; const docSnap = await getDoc(doc(db, "settings", "promos")); if(docSnap.exists()) { const promos = docSnap.data().codes; const promoObj = promos.find(p => p.code === codeStr); if(promoObj) await updateDoc(doc(db, "settings", "promos"), { codes: arrayRemove(promoObj) }); } };
+        window.addPromo = async () => { const code = document.getElementById('promo-code').value.toUpperCase(); const discount = parseInt(document.getElementById('promo-discount').value); const minOrder = parseInt(document.getElementById('promo-min').value); if(!code || !discount) return window.showToast("Error: Code and Discount required.", true); try { await setDoc(doc(db, "settings", "promos"), { codes: arrayUnion({code, discount, minOrder: minOrder || 0}) }, { merge: true }); window.showToast("Promo added successfully!"); } catch(e) { window.showToast(e.message, true); } };
+        window.deletePromo = async (codeStr) => { if(!confirm("Remove this promo?")) return; const docSnap = await getDoc(doc(db, "settings", "promos")); if(docSnap.exists()) { const promos = docSnap.data().codes; const promoObj = promos.find(p => p.code === codeStr); if(promoObj) { await updateDoc(doc(db, "settings", "promos"), { codes: arrayRemove(promoObj) }); window.showToast("Promo removed."); } } };
 
         window.loadStoreSettings = async () => { onSnapshot(doc(db, "settings", "store_config"), (docSnap) => { if(docSnap.exists()) { const data = docSnap.data(); if(data.billing) { document.getElementById('set-gst').value = data.billing.gst || 0; document.getElementById('set-shipping').value = data.billing.shipping || 50; document.getElementById('set-free-threshold').value = data.billing.freeThreshold || 2; } if(data.marqueeText) { document.getElementById('set-marquee').value = data.marqueeText; } const tbody = document.getElementById('banners-table-body'); tbody.innerHTML = ''; if(data.heroBanners && data.heroBanners.length > 0) { data.heroBanners.forEach(imgUrl => { tbody.innerHTML += `<tr><td><img src="${imgUrl}" style="height:60px; border-radius:4px;"></td><td><button class="action-btn delete-btn" onclick="deleteHeroBanner('${imgUrl}')">Remove</button></td></tr>`; }); } else { tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; color:#888;">No banners added.</td></tr>'; } } }); };
-        window.saveBillingSettings = async () => { const gst = parseFloat(document.getElementById('set-gst').value) || 0; const shipping = parseFloat(document.getElementById('set-shipping').value) || 0; const freeThreshold = parseFloat(document.getElementById('set-free-threshold').value) || 2; try { await setDoc(doc(db, "settings", "store_config"), { billing: { gst, shipping, handling:0, freeThreshold } }, { merge: true }); alert("Rules Updated!"); } catch(e) { alert(e.message); } };
-        window.saveMarquee = async () => { const marqueeText = document.getElementById('set-marquee').value; try { await setDoc(doc(db, "settings", "store_config"), { marqueeText }, { merge: true }); alert("Marquee Updated!"); } catch(e) { alert(e.message); } };
-        window.addHeroBanner = async () => { const fileInput = document.getElementById('banner-file'); if(fileInput.files.length === 0) return alert("Select an image from gallery."); const btn = document.getElementById('add-banner-btn'); const loader = document.getElementById('banner-loader'); btn.disabled = true; loader.style.display = 'inline-block'; try { let url = await uploadFileToImgBB(fileInput.files[0]); await setDoc(doc(db, "settings", "store_config"), { heroBanners: arrayUnion(url) }, { merge: true }); fileInput.value = ''; alert("Banner Successfully Added!");} catch(e) { alert(e.message); } btn.disabled = false; loader.style.display = 'none'; };
-        window.deleteHeroBanner = async (url) => { if(confirm("Remove this banner?")) { try { await updateDoc(doc(db, "settings", "store_config"), { heroBanners: arrayRemove(url) }); } catch(e) { alert(e.message); } } };
+        window.saveBillingSettings = async () => { const gst = parseFloat(document.getElementById('set-gst').value) || 0; const shipping = parseFloat(document.getElementById('set-shipping').value) || 0; const freeThreshold = parseFloat(document.getElementById('set-free-threshold').value) || 2; try { await setDoc(doc(db, "settings", "store_config"), { billing: { gst, shipping, handling:0, freeThreshold } }, { merge: true }); window.showToast("Billing rules saved!"); } catch(e) { window.showToast(e.message, true); } };
+        window.saveMarquee = async () => { const marqueeText = document.getElementById('set-marquee').value; try { await setDoc(doc(db, "settings", "store_config"), { marqueeText }, { merge: true }); window.showToast("Marquee updated successfully!"); } catch(e) { window.showToast(e.message, true); } };
+        window.addHeroBanner = async () => { const fileInput = document.getElementById('banner-file'); if(fileInput.files.length === 0) return window.showToast("Error: Select an image from gallery.", true); const btn = document.getElementById('add-banner-btn'); const loader = document.getElementById('banner-loader'); btn.disabled = true; loader.style.display = 'inline-block'; try { let url = await uploadFileToImgBB(fileInput.files[0]); await setDoc(doc(db, "settings", "store_config"), { heroBanners: arrayUnion(url) }, { merge: true }); fileInput.value = ''; window.showToast("Banner added successfully!");} catch(e) { window.showToast(e.message, true); } btn.disabled = false; loader.style.display = 'none'; };
+        window.deleteHeroBanner = async (url) => { if(confirm("Remove this banner?")) { try { await updateDoc(doc(db, "settings", "store_config"), { heroBanners: arrayRemove(url) }); window.showToast("Banner removed."); } catch(e) { window.showToast(e.message, true); } } };
     </script>
 </body>
 </html>
