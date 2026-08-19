@@ -387,7 +387,7 @@
 
     window.currentUser = null; let products = []; let cart = {}; window.currentModalProductId = null;
     window.currentSelectedVariant = null; 
-    let allPromos = []; let appliedDiscount = 0; let storeBilling = { gst: 0, shipping: 50, handling: 0, freeThreshold: 2 };
+    let allPromos = []; let appliedDiscount = 0; let storeBilling = { gst: 0, shipping: 50, handling: 0, codFee: 55, freeThreshold: 2 };
 
     const slider = document.getElementById('auto-slider'); let scrollPos = 0; let autoScroll;
     window.startSlider = function() { clearInterval(autoScroll); autoScroll = setInterval(() => { if(slider && slider.scrollWidth > 0) { scrollPos += slider.clientWidth; if(scrollPos >= slider.scrollWidth) scrollPos = 0; slider.scrollTo({ left: scrollPos, behavior: 'smooth' }); } }, 4500); }
@@ -541,7 +541,13 @@
             const configSnap = await getDoc(doc(db, "settings", "store_config"));
             if(configSnap.exists()) {
                 const data = configSnap.data();
-                if(data.billing) storeBilling = data.billing;
+                if(data.billing) {
+                    storeBilling.gst = data.billing.gst || 0;
+                    storeBilling.shipping = data.billing.shipping || 0;
+                    storeBilling.handling = data.billing.handling || 0;
+                    storeBilling.freeThreshold = data.billing.freeThreshold || 0;
+                    if(data.billing.codFee !== undefined) storeBilling.codFee = data.billing.codFee;
+                }
                 if(data.marqueeText && data.marqueeText.trim() !== '') { 
                     document.getElementById('t-offer-banner').style.display = 'block'; 
                     document.getElementById('promo-marquee').innerText = data.marqueeText; 
@@ -801,10 +807,16 @@
 
         const payMode = document.querySelector('input[name="pay_mode"]:checked')?.value || 'prepaid';
         let discountedSubtotal = sub - appliedDiscount; if(discountedSubtotal < 0) discountedSubtotal = 0;
+        
         const isFreeShipping = count >= storeBilling.freeThreshold;
         let shippingFee = (isFreeShipping || sub === 0) ? 0 : storeBilling.shipping;
-        let handlingFee = sub > 0 ? storeBilling.handling : 0;
-        if (payMode === 'cod') handlingFee += 55;
+        
+        // 🚀 NEW BILLING LOGIC INJECTED HERE
+        let handlingFee = sub > 0 ? (storeBilling.handling || 0) : 0;
+        if (payMode === 'cod' && sub > 0) {
+            handlingFee += (storeBilling.codFee !== undefined ? storeBilling.codFee : 55);
+        }
+        
         let gstFee = sub > 0 ? Math.floor(discountedSubtotal * (storeBilling.gst / 100)) : 0;
 
         document.getElementById('subtotal').innerText = sub;
