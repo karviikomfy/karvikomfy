@@ -387,7 +387,7 @@
 
     window.currentUser = null; let products = []; let cart = {}; window.currentModalProductId = null;
     window.currentSelectedVariant = null; 
-    let allPromos = []; let appliedDiscount = 0; let storeBilling = { gst: 0, shipping: 50, handling: 0, codFee: 55, freeThreshold: 2 };
+    let allPromos = []; let appliedDiscount = 0; let storeBilling = { gst: 0, shipping: 50, handling: 0, codFee: 55, freeThreshold: 999 };
 
     const slider = document.getElementById('auto-slider'); let scrollPos = 0; let autoScroll;
     window.startSlider = function() { clearInterval(autoScroll); autoScroll = setInterval(() => { if(slider && slider.scrollWidth > 0) { scrollPos += slider.clientWidth; if(scrollPos >= slider.scrollWidth) scrollPos = 0; slider.scrollTo({ left: scrollPos, behavior: 'smooth' }); } }, 4500); }
@@ -545,7 +545,7 @@
                     storeBilling.gst = data.billing.gst || 0;
                     storeBilling.shipping = data.billing.shipping || 0;
                     storeBilling.handling = data.billing.handling || 0;
-                    storeBilling.freeThreshold = data.billing.freeThreshold || 0;
+                    storeBilling.freeThreshold = data.billing.freeThreshold || 999;
                     if(data.billing.codFee !== undefined) storeBilling.codFee = data.billing.codFee;
                 }
                 if(data.marqueeText && data.marqueeText.trim() !== '') { 
@@ -808,10 +808,9 @@
         const payMode = document.querySelector('input[name="pay_mode"]:checked')?.value || 'prepaid';
         let discountedSubtotal = sub - appliedDiscount; if(discountedSubtotal < 0) discountedSubtotal = 0;
         
-        const isFreeShipping = count >= storeBilling.freeThreshold;
+        const isFreeShipping = discountedSubtotal >= storeBilling.freeThreshold;
         let shippingFee = (isFreeShipping || sub === 0) ? 0 : storeBilling.shipping;
         
-        // 🚀 NEW BILLING LOGIC INJECTED HERE
         let handlingFee = sub > 0 ? (storeBilling.handling || 0) : 0;
         if (payMode === 'cod' && sub > 0) {
             handlingFee += (storeBilling.codFee !== undefined ? storeBilling.codFee : 55);
@@ -915,6 +914,7 @@
         else if (type === 'refund') { title.innerText = "Return Policy"; content.innerHTML = "<p>At Karvi Komfy, we strive to ensure you receive the highest quality premium travel comfort products. Please read our policy carefully.</p><p><b>1. Eligibility for Returns:</b> You have 7 days after receiving your item to request a return. To be eligible, your item must be in the same condition that you received it, unworn or unused, with tags, and in its original packaging.</p><p><b>2. Damages and Issues:</b> Please inspect your order upon reception. If the item is defective, damaged, or if you receive the wrong item, please contact us within 48 hours with photo evidence so we can evaluate the issue and make it right.</p><p><b>3. Refunds:</b> Once we receive and inspect your return, we will notify you if the refund was approved. If approved, you will be automatically refunded on your original payment method. Please note it can take 5-7 business days for your bank or credit card company to process the refund.</p><p><b>4. Shipping Costs:</b> We offer complimentary shipping on bundles of 2 or more. Return shipping costs are the responsibility of the customer unless the item was received damaged or incorrect.</p>"; } 
     };
 
+    // ✨ PREMIUM LIVE SEARCH WITH PRODUCT THUMBNAILS & PRICING
     window.liveSearch = () => {
         const query = document.getElementById('search-box').value.toLowerCase().trim();
         const dropdown = document.getElementById('search-dropdown');
