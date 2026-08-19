@@ -548,6 +548,7 @@
     window.triggerCartFlow = () => { window.showCart(); };
     window.showCart = () => { window.resetViews(); window.showSafe('cart-view'); window.scrollTo(0, 0); window.renderCart(); };
 
+    // 🟢 UPDATED RENDER FUNCTION WITH OUT OF STOCK LOGIC
     function render() {
         const grid = document.getElementById('main-view'); grid.innerHTML = '';
         if (products.length === 0) { grid.innerHTML = `<p style="text-align:center; color:#888; grid-column: 1 / -1; padding: 50px; font-family: 'Playfair Display', serif; font-size: 1.2rem;">The collection is currently being updated.</p>`; return; }
@@ -558,7 +559,11 @@
             const mainImg = p.images && p.images.length > 0 ? p.images[0] : (p.image || ''); 
             
             let btnHtml = '';
-            if(hasVariants) {
+            
+            // Out of Stock check
+            if(p.outOfStock) {
+                btnHtml = `<div class="p-actions"><button class="btn-buy" style="background: #94a3b8; box-shadow: none; cursor: not-allowed; color: white;" disabled>OUT OF STOCK</button></div>`;
+            } else if(hasVariants) {
                 btnHtml = `<div class="p-actions" style="display:flex; gap:10px;"><button class="btn-buy" onclick="openProduct('${p.id}')">View Offers</button></div>`;
             } else {
                 let cartKey = `${p.id}|||Standard`;
@@ -566,7 +571,21 @@
                 btnHtml = q > 0 ? `<div class="p-qty"><button onclick="updateQty('${p.id}',-1,'Standard')">−</button><span style="font-weight:600; font-family: 'Inter', sans-serif; font-size: 1.1rem;">${q}</span><button onclick="updateQty('${p.id}',1,'Standard')">+</button></div>` : `<div class="p-actions" style="display:flex; gap:10px;"><button class="btn-cart" onclick="updateQty('${p.id}',1,'Standard')">Add</button><button class="btn-buy" onclick="buyNow('${p.id}', 'Standard')">Purchase</button></div>`;
             }
 
-            grid.innerHTML += `<div class="p-card">${badgeHtml}<div class="p-img-container" onclick="openProduct('${p.id}')"><img src="${mainImg}" class="p-img" loading="lazy"></div><div class="p-details"><h4 onclick="openProduct('${p.id}')">${p.name}</h4><div class="p-price-row"><span class="p-price">₹${p.price}</span></div>${btnHtml}</div></div>`;
+            // Grayscale styling if out of stock
+            const imgStyle = p.outOfStock ? 'filter: grayscale(100%); opacity: 0.6;' : '';
+
+            grid.innerHTML += `
+            <div class="p-card">
+                ${badgeHtml}
+                <div class="p-img-container" onclick="openProduct('${p.id}')">
+                    <img src="${mainImg}" class="p-img" loading="lazy" style="${imgStyle}">
+                </div>
+                <div class="p-details">
+                    <h4 onclick="openProduct('${p.id}')">${p.name}</h4>
+                    <div class="p-price-row"><span class="p-price">₹${p.price}</span></div>
+                    ${btnHtml}
+                </div>
+            </div>`;
         });
     }
 
@@ -619,16 +638,37 @@
         document.getElementById('modal-rating-avg').innerText = `⭐ ${avg}`; document.getElementById('modal-rating-count').innerText = `(${revCount} reviews)`;
         renderReviews(p.reviews || []);
 
-        document.getElementById('modal-add-btn').onclick = () => { 
-            window.updateQty(id, 1, window.currentSelectedVariant.name); 
-            const btn = document.getElementById('modal-add-btn'); btn.innerText = "Added"; setTimeout(() => { btn.innerText = "Add to Bag"; }, 1500); 
-        }; 
-        document.getElementById('modal-buy-btn').onclick = () => { 
-            let vName = window.currentSelectedVariant.name;
-            let cKey = `${id}|||${vName}`;
-            if (!cart[cKey]) window.updateQty(id, 1, vName); 
-            window.triggerCartFlow(); window.activateNav(document.querySelectorAll('.nav-item')[3]); 
-        }; 
+        // 🟢 Update Modal Buttons for Out of Stock
+        const addBtn = document.getElementById('modal-add-btn');
+        const buyBtn = document.getElementById('modal-buy-btn');
+        const qtyControls = document.getElementById('modal-qty-controls');
+        
+        if (p.outOfStock) {
+            addBtn.style.display = 'none';
+            buyBtn.style.background = '#94a3b8';
+            buyBtn.style.boxShadow = 'none';
+            buyBtn.style.cursor = 'not-allowed';
+            buyBtn.innerText = 'OUT OF STOCK';
+            buyBtn.onclick = null;
+            qtyControls.style.display = 'none';
+        } else {
+            addBtn.style.display = 'block';
+            buyBtn.style.background = 'linear-gradient(135deg, var(--primary), var(--primary-dark))';
+            buyBtn.style.cursor = 'pointer';
+            buyBtn.innerText = 'Checkout';
+            qtyControls.style.display = 'inline-flex';
+            
+            addBtn.onclick = () => { 
+                window.updateQty(id, 1, window.currentSelectedVariant.name); 
+                addBtn.innerText = "Added"; setTimeout(() => { addBtn.innerText = "Add to Bag"; }, 1500); 
+            }; 
+            buyBtn.onclick = () => { 
+                let vName = window.currentSelectedVariant.name;
+                let cKey = `${id}|||${vName}`;
+                if (!cart[cKey]) window.updateQty(id, 1, vName); 
+                window.triggerCartFlow(); window.activateNav(document.querySelectorAll('.nav-item')[3]); 
+            }; 
+        }
     };
 
     window.selectVariant = (btnElement, name, price) => {
@@ -828,7 +868,7 @@
         else if (type === 'refund') { title.innerText = "Return Policy"; content.innerHTML = "<p>At Karvi Komfy, we strive to ensure you receive the highest quality premium travel comfort products. Please read our policy carefully.</p><p><b>1. Eligibility for Returns:</b> You have 7 days after receiving your item to request a return. To be eligible, your item must be in the same condition that you received it, unworn or unused, with tags, and in its original packaging.</p><p><b>2. Damages and Issues:</b> Please inspect your order upon reception. If the item is defective, damaged, or if you receive the wrong item, please contact us within 48 hours with photo evidence so we can evaluate the issue and make it right.</p><p><b>3. Refunds:</b> Once we receive and inspect your return, we will notify you if the refund was approved. If approved, you will be automatically refunded on your original payment method. Please note it can take 5-7 business days for your bank or credit card company to process the refund.</p><p><b>4. Shipping Costs:</b> We offer complimentary shipping on bundles of 2 or more. Return shipping costs are the responsibility of the customer unless the item was received damaged or incorrect.</p>"; } 
     };
 
-    // ✨ SEARCH DROPDOWN WITH IMAGES & PRICES
+    // ✨ PREMIUM LIVE SEARCH WITH PRODUCT THUMBNAILS & PRICING
     window.liveSearch = () => {
         const query = document.getElementById('search-box').value.toLowerCase().trim();
         const dropdown = document.getElementById('search-dropdown');
