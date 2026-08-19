@@ -170,10 +170,12 @@
                 <h1>Store Settings</h1>
                 <div class="card">
                     <h3>Billing Rules</h3>
-                    <div class="form-group flex-row">
-                        <div style="flex: 1;"><label>GST (%)</label><input type="number" id="set-gst" value="0"></div>
-                        <div style="flex: 1;"><label>Shipping (₹)</label><input type="number" id="set-shipping" value="50"></div>
-                        <div style="flex: 1;"><label>Free Threshold (Items)</label><input type="number" id="set-free-threshold" value="2"></div>
+                    <div class="form-group flex-row" style="flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 120px;"><label>GST (%)</label><input type="number" id="set-gst" value="0"></div>
+                        <div style="flex: 1; min-width: 120px;"><label>Shipping (₹)</label><input type="number" id="set-shipping" value="50"></div>
+                        <div style="flex: 1; min-width: 160px;"><label>Free Shipping Min. Order (₹)</label><input type="number" id="set-free-threshold" value="999"></div>
+                        <div style="flex: 1; min-width: 120px;"><label>Handling Fee (₹)</label><input type="number" id="set-handling" value="0"></div>
+                        <div style="flex: 1; min-width: 120px;"><label>COD Extra Fee (₹)</label><input type="number" id="set-cod" value="55"></div>
                     </div>
                     <button class="btn-submit" onclick="saveBillingSettings()">Save Rules</button>
                 </div>
@@ -489,8 +491,20 @@
         window.addPromo = async () => { const code = document.getElementById('promo-code').value.toUpperCase(); const discount = parseInt(document.getElementById('promo-discount').value); const minOrder = parseInt(document.getElementById('promo-min').value); if(!code || !discount) return window.showToast("Error: Code and Discount required.", true); try { await setDoc(doc(db, "settings", "promos"), { codes: arrayUnion({code, discount, minOrder: minOrder || 0}) }, { merge: true }); window.showToast("Promo added successfully!"); } catch(e) { window.showToast(e.message, true); } };
         window.deletePromo = async (codeStr) => { if(!confirm("Remove this promo?")) return; const docSnap = await getDoc(doc(db, "settings", "promos")); if(docSnap.exists()) { const promos = docSnap.data().codes; const promoObj = promos.find(p => p.code === codeStr); if(promoObj) { await updateDoc(doc(db, "settings", "promos"), { codes: arrayRemove(promoObj) }); window.showToast("Promo removed."); } } };
 
-        window.loadStoreSettings = async () => { onSnapshot(doc(db, "settings", "store_config"), (docSnap) => { if(docSnap.exists()) { const data = docSnap.data(); if(data.billing) { document.getElementById('set-gst').value = data.billing.gst || 0; document.getElementById('set-shipping').value = data.billing.shipping || 50; document.getElementById('set-free-threshold').value = data.billing.freeThreshold || 2; } if(data.marqueeText) { document.getElementById('set-marquee').value = data.marqueeText; } const tbody = document.getElementById('banners-table-body'); tbody.innerHTML = ''; if(data.heroBanners && data.heroBanners.length > 0) { data.heroBanners.forEach(imgUrl => { tbody.innerHTML += `<tr><td><img src="${imgUrl}" style="height:60px; border-radius:4px;"></td><td><button class="action-btn delete-btn" onclick="deleteHeroBanner('${imgUrl}')">Remove</button></td></tr>`; }); } else { tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; color:#888;">No banners added.</td></tr>'; } } }); };
-        window.saveBillingSettings = async () => { const gst = parseFloat(document.getElementById('set-gst').value) || 0; const shipping = parseFloat(document.getElementById('set-shipping').value) || 0; const freeThreshold = parseFloat(document.getElementById('set-free-threshold').value) || 2; try { await setDoc(doc(db, "settings", "store_config"), { billing: { gst, shipping, handling:0, freeThreshold } }, { merge: true }); window.showToast("Billing rules saved!"); } catch(e) { window.showToast(e.message, true); } };
+        window.loadStoreSettings = async () => { onSnapshot(doc(db, "settings", "store_config"), (docSnap) => { if(docSnap.exists()) { const data = docSnap.data(); if(data.billing) { document.getElementById('set-gst').value = data.billing.gst || 0; document.getElementById('set-shipping').value = data.billing.shipping || 0; document.getElementById('set-free-threshold').value = data.billing.freeThreshold || 999; document.getElementById('set-handling').value = data.billing.handling || 0; document.getElementById('set-cod').value = data.billing.codFee !== undefined ? data.billing.codFee : 55; } if(data.marqueeText) { document.getElementById('set-marquee').value = data.marqueeText; } const tbody = document.getElementById('banners-table-body'); tbody.innerHTML = ''; if(data.heroBanners && data.heroBanners.length > 0) { data.heroBanners.forEach(imgUrl => { tbody.innerHTML += `<tr><td><img src="${imgUrl}" style="height:60px; border-radius:4px;"></td><td><button class="action-btn delete-btn" onclick="deleteHeroBanner('${imgUrl}')">Remove</button></td></tr>`; }); } else { tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; color:#888;">No banners added.</td></tr>'; } } }); };
+        
+        window.saveBillingSettings = async () => { 
+            const gst = parseFloat(document.getElementById('set-gst').value) || 0; 
+            const shipping = parseFloat(document.getElementById('set-shipping').value) || 0; 
+            const freeThreshold = parseFloat(document.getElementById('set-free-threshold').value) || 0; 
+            const handling = parseFloat(document.getElementById('set-handling').value) || 0;
+            const codFee = parseFloat(document.getElementById('set-cod').value) || 0;
+            try { 
+                await setDoc(doc(db, "settings", "store_config"), { billing: { gst, shipping, handling, codFee, freeThreshold } }, { merge: true }); 
+                window.showToast("Billing rules saved!"); 
+            } catch(e) { window.showToast(e.message, true); } 
+        };
+        
         window.saveMarquee = async () => { const marqueeText = document.getElementById('set-marquee').value; try { await setDoc(doc(db, "settings", "store_config"), { marqueeText }, { merge: true }); window.showToast("Marquee updated successfully!"); } catch(e) { window.showToast(e.message, true); } };
         window.addHeroBanner = async () => { const fileInput = document.getElementById('banner-file'); if(fileInput.files.length === 0) return window.showToast("Error: Select an image from gallery.", true); const btn = document.getElementById('add-banner-btn'); const loader = document.getElementById('banner-loader'); btn.disabled = true; loader.style.display = 'inline-block'; try { let url = await uploadFileToImgBB(fileInput.files[0]); await setDoc(doc(db, "settings", "store_config"), { heroBanners: arrayUnion(url) }, { merge: true }); fileInput.value = ''; window.showToast("Banner added successfully!");} catch(e) { window.showToast(e.message, true); } btn.disabled = false; loader.style.display = 'none'; };
         window.deleteHeroBanner = async (url) => { if(confirm("Remove this banner?")) { try { await updateDoc(doc(db, "settings", "store_config"), { heroBanners: arrayRemove(url) }); window.showToast("Banner removed."); } catch(e) { window.showToast(e.message, true); } } };
