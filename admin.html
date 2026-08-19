@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Karvi Komfy | Admin Control Panel</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #D81B60; --primary-dark: #ad154d; --navy: #0F172A; --bg: #F8FAFC; --card-bg: #FFFFFF; --border: #E2E8F0; --text: #1E293B; }
         body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
@@ -23,17 +23,19 @@
         .main-content { flex: 1; padding: 30px; overflow-y: auto; }
         .section-view { display: none; } .section-view.active { display: block; }
         h1 { margin-top: 0; font-family: 'Playfair Display', serif; color: var(--navy); }
-        .card { background: var(--card-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);}
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
-        .form-group input, .form-group textarea, .form-group input[type="file"] { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; }
-        .btn-submit { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 4px; font-weight: 600; cursor: pointer; }
+        .form-group input, .form-group textarea, .form-group input[type="file"] { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; }
+        .btn-submit { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s;}
+        .btn-submit:hover { opacity: 0.9; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
         th { background: var(--bg); font-weight: 600; color: var(--navy); }
-        .action-btn { background: var(--navy); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-        .delete-btn { background: #b91c1c; }
-        .flex-row { display: flex; gap: 15px; align-items: flex-end; }
+        .action-btn { background: var(--navy); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;}
+        .delete-btn { background: #ef4444; }
+        .edit-btn { background: #3b82f6; }
+        .flex-row { display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;}
         .loader { display: none; color: var(--primary); font-size: 0.9rem; font-weight: 600; margin-left: 15px;}
         #image-preview-container { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
         .preview-img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -64,27 +66,48 @@
         </div>
 
         <div class="main-content">
+            <!-- ORDERS TAB -->
             <div id="sec-orders" class="section-view active">
                 <h1>Order Management</h1>
-                <!-- UPDATED ORDERS CONTAINER -->
-                <div id="admin-orders-list">
-                    <!-- Orders will be injected here automatically by loadOrders() -->
+                
+                <!-- NEW STATS DASHBOARD -->
+                <div class="card flex-row" style="padding: 25px; align-items: center; justify-content: space-around;">
+                    <div style="text-align: center;">
+                        <p style="margin: 0 0 5px 0; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.85rem;">Total Valid Orders</p>
+                        <h2 id="stat-ord-count" style="margin: 0; color: var(--navy); font-size: 2.5rem;">0</h2>
+                    </div>
+                    <div style="height: 60px; width: 1px; background: var(--border);"></div>
+                    <div style="text-align: center;">
+                        <p style="margin: 0 0 5px 0; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.85rem;">Total Sales Revenue</p>
+                        <h2 id="stat-ord-rev" style="margin: 0; color: #10B981; font-size: 2.5rem;">₹0</h2>
+                    </div>
                 </div>
+
+                <div id="admin-orders-list"></div>
             </div>
 
+            <!-- PRODUCTS TAB -->
             <div id="sec-products" class="section-view">
                 <h1>Products Catalog</h1>
-                <div class="card">
-                    <h3>Add New Pillow Design</h3>
+                <div class="card" id="product-form-card">
+                    <h3 id="form-title">Add New Pillow Design</h3>
                     <div class="form-group"><label>Product Name</label><input type="text" id="prod-name"></div>
+                    
                     <div class="form-group flex-row">
                         <div style="flex: 1;"><label>Base Price (₹)</label><input type="number" id="prod-price" value="399"></div>
-                        <div style="flex: 1;"><label>Category / Tag</label><input type="text" id="prod-tag" placeholder="e.g., Solid, Print"></div>
+                        <div style="flex: 1;"><label>Category</label><input type="text" id="prod-cat" placeholder="e.g. Printed, Solid"></div>
+                        <div style="flex: 1;"><label>Ribbon / Badge</label><input type="text" id="prod-badge" placeholder="e.g. Bestseller, New Arrival"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 15px; background: #fef2f2; padding: 10px; border-radius: 6px; border: 1px solid #fca5a5;">
+                        <label style="cursor: pointer; color: #b91c1c; margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="prod-oos" style="width: 20px; height: 20px; margin: 0;"> 
+                            MARK AS OUT OF STOCK
+                        </label>
                     </div>
                     
                     <hr style="border:0; border-top:1px solid var(--border); margin:25px 0;">
                     
-                    <!-- NEW DYNAMIC BUNDLE BUILDER -->
                     <div class="form-group">
                         <label>Add Offers / Bundles (Optional)</label>
                         <p style="font-size:0.8rem; color:#666; margin-top:0;">E.g. Name: "Pack of 2", Price: "749". The base product price above is automatically saved as "Standard".</p>
@@ -95,22 +118,28 @@
                     <hr style="border:0; border-top:1px solid var(--border); margin:25px 0;">
 
                     <div class="form-group flex-row">
-                        <div style="flex: 2;"><label>Product Photos</label><input type="file" id="prod-images" multiple accept="image/*" onchange="previewImages(event)"><div id="image-preview-container"></div></div>
+                        <div style="flex: 2;"><label>Product Photos (Leave empty to keep existing images if editing)</label><input type="file" id="prod-images" multiple accept="image/*" onchange="previewImages(event)"><div id="image-preview-container"></div></div>
                         <div style="flex: 1;"><label>Video Link (Optional)</label><input type="text" id="prod-video" placeholder="YouTube or Direct Video URL"></div>
                     </div>
                     <div class="form-group"><label>Description</label><textarea id="prod-desc" rows="2" placeholder="Ergonomic memory foam..."></textarea></div>
-                    <button class="btn-submit" id="add-prod-btn" onclick="addProduct()">Upload & Save Product</button>
-                    <span id="prod-loader" class="loader">Uploading images... please wait.</span>
+                    
+                    <div style="display: flex; gap: 15px;">
+                        <button class="btn-submit" id="add-prod-btn" onclick="saveProduct()">Upload & Save Product</button>
+                        <button class="btn-submit hidden" id="cancel-edit-btn" onclick="cancelEdit()" style="background: #64748b;">Cancel Edit</button>
+                    </div>
+                    <span id="prod-loader" class="loader">Uploading data... please wait.</span>
                 </div>
+                
                 <div class="card">
                     <h3>Current Inventory</h3>
                     <table>
-                        <thead><tr><th>Image</th><th>Name</th><th>Price</th><th>Action</th></tr></thead>
+                        <thead><tr><th>Image</th><th>Name</th><th>Ribbon</th><th>Stock Status</th><th>Action</th></tr></thead>
                         <tbody id="products-table-body"></tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- VIDEOS TAB -->
             <div id="sec-videos" class="section-view">
                 <h1>Community Videos (Reels)</h1>
                 <div class="card">
@@ -127,6 +156,7 @@
                 </div>
             </div>
 
+            <!-- PROMOS TAB -->
             <div id="sec-promos" class="section-view">
                 <h1>Promo Codes</h1>
                 <div class="card">
@@ -143,6 +173,7 @@
                 </div>
             </div>
 
+            <!-- SETTINGS TAB -->
             <div id="sec-settings" class="section-view">
                 <h1>Store Settings</h1>
                 <div class="card">
@@ -178,14 +209,15 @@
     </div>
 
     <script type="module">
-        // @ts-nocheck
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, doc, setDoc, getDoc, updateDoc, deleteDoc, addDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         
         const firebaseConfig = { apiKey: "AIzaSyBw4wX5g8n314AYy1btlYxblfFNsO6tKQ0", authDomain: "karvikomfy-d4d0d.firebaseapp.com", projectId: "karvikomfy-d4d0d", storageBucket: "karvikomfy-d4d0d.firebasestorage.app", messagingSenderId: "28564797585", appId: "1:28564797585:web:9336b34b708fe6dc33e730" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app);
-        
         const IMGBB_API_KEY = "18619d412a8e1e7a1dc960e350fafa3f";
+
+        window.allProducts = [];
+        window.editingProductId = null;
 
         window.attemptLogin = () => { if (document.getElementById('admin-user').value === 'karvi' && document.getElementById('admin-pass').value === 'karvi0123') { document.getElementById('login-screen').style.display = 'none'; document.getElementById('dashboard').style.display = 'flex'; loadProducts(); loadOrders(); loadPromos(); loadStoreSettings(); loadCommunityVideos(); } else { document.getElementById('login-error').style.display = 'block'; } };
         window.logout = () => { location.reload(); };
@@ -195,23 +227,57 @@
 
         async function uploadFileToImgBB(file) { const formData = new FormData(); formData.append('image', file); const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData }); const data = await res.json(); if(data.success) return data.data.url; throw new Error("Image upload failed"); }
 
-        window.loadProducts = async () => { onSnapshot(collection(db, "products"), (snapshot) => { const tbody = document.getElementById('products-table-body'); tbody.innerHTML = ''; snapshot.forEach(doc => { const p = doc.data(); const mainImg = p.images && p.images.length > 0 ? p.images[0] : ''; tbody.innerHTML += `<tr><td><img src="${mainImg}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"></td><td>${p.name}</td><td>₹${p.price}</td><td><button class="action-btn delete-btn" onclick="deleteProduct('${doc.id}')">Delete</button></td></tr>`; }); }); };
+        // ==========================================
+        // 🛍️ PRODUCTS INVENTORY LOGIC (EDIT, BADGE, OOS)
+        // ==========================================
+        window.loadProducts = async () => { 
+            onSnapshot(collection(db, "products"), (snapshot) => { 
+                const tbody = document.getElementById('products-table-body'); tbody.innerHTML = ''; 
+                window.allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        // DYNAMIC BUNDLE LOGIC
+                window.allProducts.forEach(p => { 
+                    const mainImg = p.images && p.images.length > 0 ? p.images[0] : ''; 
+                    const oosColor = p.outOfStock ? 'color: #b91c1c; font-weight: bold;' : 'color: #10B981; font-weight: bold;';
+                    const oosText = p.outOfStock ? 'Out of Stock' : 'In Stock';
+
+                    tbody.innerHTML += `
+                    <tr>
+                        <td><img src="${mainImg}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;"></td>
+                        <td><b>${p.name}</b><br><span style="font-size:0.8rem; color:#666;">₹${p.price}</span></td>
+                        <td><span style="background: var(--navy); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem;">${p.tag || 'None'}</span></td>
+                        <td>
+                            <span style="${oosColor}">${oosText}</span><br>
+                            <label style="font-size: 0.75rem; color: #666; cursor:pointer;"><input type="checkbox" ${p.outOfStock ? 'checked' : ''} onchange="toggleOOS('${p.id}', this.checked)"> Toggle</label>
+                        </td>
+                        <td>
+                            <button class="action-btn edit-btn" onclick="editProduct('${p.id}')">Edit</button>
+                            <button class="action-btn delete-btn" onclick="deleteProduct('${p.id}')">Delete</button>
+                        </td>
+                    </tr>`; 
+                }); 
+            }); 
+        };
+
+        window.toggleOOS = async (id, isOOS) => {
+            try { await updateDoc(doc(db, "products", id), { outOfStock: isOOS }); } catch(e) { alert("Failed to update stock status."); }
+        };
+
         window.addVariantRow = () => {
             const container = document.getElementById('variants-container');
             container.innerHTML += `<div class="flex-row variant-row" style="margin-top:10px;"><input type="text" placeholder="e.g. Pack of 2" class="v-name" style="flex:2; margin:0;"><input type="number" placeholder="Price (₹)" class="v-price" style="flex:1; margin:0;"><button class="action-btn delete-btn" onclick="this.parentElement.remove()">X</button></div>`;
         };
 
-        window.addProduct = async () => { 
+        window.saveProduct = async () => { 
             const name = document.getElementById('prod-name').value; 
             const price = parseInt(document.getElementById('prod-price').value); 
-            const tag = document.getElementById('prod-tag').value; 
+            const category = document.getElementById('prod-cat').value; 
+            const badgeTag = document.getElementById('prod-badge').value; 
             const desc = document.getElementById('prod-desc').value; 
             const videoUrl = document.getElementById('prod-video').value; 
+            const outOfStock = document.getElementById('prod-oos').checked;
             const fileInput = document.getElementById('prod-images'); 
             
-            if(!name || fileInput.files.length === 0) return alert("Name and at least one image are required."); 
+            if(!name) return alert("Product Name is required."); 
             
             let variants = [];
             document.querySelectorAll('.variant-row').forEach(row => {
@@ -225,48 +291,134 @@
             
             try { 
                 let uploadedImages = []; 
-                for(let i=0; i < fileInput.files.length; i++) { 
-                    let url = await uploadFileToImgBB(fileInput.files[i]); 
-                    uploadedImages.push(url); 
-                } 
-                await addDoc(collection(db, "products"), { name, price, tag, desc, variants: variants, images: uploadedImages, video: videoUrl, reviews: [] }); 
-                alert("Product Saved!"); 
-                document.getElementById('prod-name').value = ''; fileInput.value = ''; document.getElementById('prod-video').value = ''; document.getElementById('image-preview-container').innerHTML = ''; document.getElementById('variants-container').innerHTML = '';
-            } catch(e) { alert(e.message); } 
+                if(fileInput.files.length > 0) {
+                    for(let i=0; i < fileInput.files.length; i++) { 
+                        let url = await uploadFileToImgBB(fileInput.files[i]); 
+                        uploadedImages.push(url); 
+                    }
+                }
+
+                let productData = { 
+                    name, price, category, tag: badgeTag, desc, variants, video: videoUrl, outOfStock 
+                };
+                
+                if(uploadedImages.length > 0) {
+                    productData.images = uploadedImages;
+                }
+
+                if(window.editingProductId) {
+                    await updateDoc(doc(db, "products", window.editingProductId), productData);
+                    alert("Product Successfully Updated!");
+                    window.cancelEdit();
+                } else {
+                    if(uploadedImages.length === 0) {
+                        btn.disabled = false; loader.style.display = 'none';
+                        return alert("Please upload at least one image for new products.");
+                    }
+                    productData.reviews = [];
+                    await addDoc(collection(db, "products"), productData);
+                    alert("New Product Saved!");
+                    window.cancelEdit(); // Clears form
+                }
+
+            } catch(e) { alert("Error: " + e.message); } 
             
             btn.disabled = false; loader.style.display = 'none'; 
         };
-        
-        window.deleteProduct = async (id) => { if(confirm("Delete this product?")) await deleteDoc(doc(db, "products", id)); };
 
-        window.loadCommunityVideos = async () => { onSnapshot(collection(db, "community_videos"), (snapshot) => { const tbody = document.getElementById('videos-table-body'); tbody.innerHTML = ''; snapshot.forEach(doc => { const v = doc.data(); tbody.innerHTML += `<tr><td>${v.title}</td><td><a href="${v.url}" target="_blank" style="color:var(--primary); font-size:0.8rem;">View Link</a></td><td><button class="action-btn delete-btn" onclick="deleteCommunityVideo('${doc.id}')">Remove</button></td></tr>`; }); }); };
-        window.addCommunityVideo = async () => { const title = document.getElementById('vid-title').value; const url = document.getElementById('vid-url').value; if(!url) return alert("URL is required"); try { await addDoc(collection(db, "community_videos"), { title, url }); document.getElementById('vid-title').value = ''; document.getElementById('vid-url').value = ''; } catch(e) { alert(e.message); } };
-        window.deleteCommunityVideo = async (id) => { if(confirm("Remove this reel?")) await deleteDoc(doc(db, "community_videos", id)); };
+        window.editProduct = (id) => {
+            const p = window.allProducts.find(x => x.id === id);
+            if(!p) return;
+            
+            document.getElementById('form-title').innerText = "Edit Product";
+            document.getElementById('prod-name').value = p.name || '';
+            document.getElementById('prod-price').value = p.price || '';
+            document.getElementById('prod-cat').value = p.category || '';
+            document.getElementById('prod-badge').value = p.tag || '';
+            document.getElementById('prod-desc').value = p.desc || '';
+            document.getElementById('prod-video').value = p.video || '';
+            document.getElementById('prod-oos').checked = !!p.outOfStock;
+            
+            document.getElementById('variants-container').innerHTML = '';
+            if(p.variants) {
+                p.variants.forEach(v => {
+                    document.getElementById('variants-container').innerHTML += `<div class="flex-row variant-row" style="margin-top:10px;"><input type="text" value="${v.name}" class="v-name" style="flex:2; margin:0;"><input type="number" value="${v.price}" class="v-price" style="flex:1; margin:0;"><button class="action-btn delete-btn" onclick="this.parentElement.remove()">X</button></div>`;
+                });
+            }
 
-        // UPDATED CARD-BASED ORDERS RENDER FUNCTION
+            window.editingProductId = id;
+            document.getElementById('add-prod-btn').innerText = "Update Product Changes";
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.cancelEdit = () => {
+            window.editingProductId = null;
+            document.getElementById('form-title').innerText = "Add New Pillow Design";
+            document.getElementById('add-prod-btn').innerText = "Upload & Save Product";
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+            
+            document.getElementById('prod-name').value = '';
+            document.getElementById('prod-price').value = '399';
+            document.getElementById('prod-cat').value = '';
+            document.getElementById('prod-badge').value = '';
+            document.getElementById('prod-desc').value = '';
+            document.getElementById('prod-video').value = '';
+            document.getElementById('prod-oos').checked = false;
+            document.getElementById('prod-images').value = '';
+            document.getElementById('image-preview-container').innerHTML = '';
+            document.getElementById('variants-container').innerHTML = '';
+        };
+
+        window.deleteProduct = async (id) => { if(confirm("Permanently delete this product?")) await deleteDoc(doc(db, "products", id)); };
+
+
+        // ==========================================
+        // 📦 ORDERS LOGIC (DASHBOARD STATS & ACTIONS)
+        // ==========================================
         window.loadOrders = async () => {
             onSnapshot(collection(db, "orders"), (snapshot) => {
                 const ordersContainer = document.getElementById('admin-orders-list');
-                if (!ordersContainer) return;
-
+                
                 if (snapshot.empty) {
                     ordersContainer.innerHTML = '<p style="text-align:center; color:#888; padding:30px;">No orders found.</p>';
+                    document.getElementById('stat-ord-count').innerText = "0";
+                    document.getElementById('stat-ord-rev').innerText = "₹0";
                     return;
                 }
 
                 const ordersArray = [];
-                snapshot.forEach(doc => ordersArray.push({ id: doc.id, ...doc.data() }));
+                let totalRev = 0;
+                let totalOrd = 0;
+
+                snapshot.forEach(doc => {
+                    const orderData = doc.data();
+                    ordersArray.push({ id: doc.id, ...orderData });
+                    
+                    // Dashboard Calculation (Exclude Cancelled)
+                    if(orderData.status !== "Cancelled") {
+                        totalRev += Number(orderData.total) || 0;
+                        totalOrd++;
+                    }
+                });
                 
+                // Update Dashboard Elements
+                document.getElementById('stat-ord-count').innerText = totalOrd;
+                document.getElementById('stat-ord-rev').innerText = "₹" + totalRev.toLocaleString('en-IN');
+
                 // Sort latest orders first
                 ordersArray.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
                 let html = '';
                 ordersArray.forEach(order => {
                     const orderDate = order.date ? new Date(order.date).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A';
-                    const payBadgeColor = order.payMode === 'COD' ? '#F59E0B' : '#10B981';
+                    
+                    let payBadgeColor = '#10B981'; // Green for prepaid
+                    if(order.payMode === 'COD') payBadgeColor = '#F59E0B'; // Orange for COD
+                    if(order.status === 'Cancelled') payBadgeColor = '#ef4444'; // Red if cancelled
 
                     html += `
-                    <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border, #e2e8f0); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); font-family: 'Inter', sans-serif;">
+                    <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border, #e2e8f0); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
                         
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid var(--border, #e2e8f0); padding-bottom: 12px; margin-bottom: 15px;">
                             <div>
@@ -275,36 +427,30 @@
                                 <span style="font-size: 0.8rem; color: #94a3b8;">${orderDate}</span>
                             </div>
                             <div style="text-align: right;">
-                                <span style="display: inline-block; background: ${payBadgeColor}; color: white; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-bottom: 4px;">
-                                    ${order.payMode || 'Prepaid'}
+                                <span style="display: inline-block; background: ${payBadgeColor}; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-bottom: 4px;">
+                                    ${order.status === 'Cancelled' ? 'CANCELLED' : (order.payMode || 'Prepaid')}
                                 </span>
                                 <div style="font-size: 1.25rem; font-weight: 800; color: var(--primary, #D81B60);">₹${order.total || 0}</div>
                             </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-bottom: 15px;">
-                            
                             <div style="background: var(--bg, #f8fafc); padding: 14px; border-radius: 8px; border: 1px solid var(--border, #e2e8f0);">
-                                <b style="display: block; font-size: 0.8rem; color: #64748b; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">📍 Delivery Details</b>
+                                <b style="display: block; font-size: 0.8rem; color: #64748b; text-transform: uppercase; margin-bottom: 6px;">📍 Delivery Details</b>
                                 <div style="font-weight: 700; color: var(--text, #0f172a); font-size: 1rem; margin-bottom: 4px;">${order.name || 'Anonymous Customer'}</div>
                                 <div style="color: #475569; font-size: 0.9rem; margin-bottom: 6px;">
                                     📞 <a href="tel:${order.phone}" style="color: inherit; text-decoration: none; font-weight: 600;">${order.phone || 'No phone'}</a>
                                 </div>
-                                <div style="color: #334155; font-size: 0.88rem; line-height: 1.4;">
-                                    ${order.address || 'No address provided'}
-                                </div>
+                                <div style="color: #334155; font-size: 0.88rem; line-height: 1.4;">${order.address || 'No address provided'}</div>
                             </div>
-
                             <div style="background: var(--bg, #f8fafc); padding: 14px; border-radius: 8px; border: 1px solid var(--border, #e2e8f0);">
-                                <b style="display: block; font-size: 0.8rem; color: #64748b; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">📦 Items Ordered</b>
-                                <div style="font-size: 0.92rem; color: var(--text, #0f172a); font-weight: 600; line-height: 1.5; white-space: pre-wrap;">
-                                    ${order.items || 'No item details recorded'}
-                                </div>
+                                <b style="display: block; font-size: 0.8rem; color: #64748b; text-transform: uppercase; margin-bottom: 6px;">📦 Items Ordered</b>
+                                <div style="font-size: 0.92rem; color: var(--text, #0f172a); font-weight: 600; line-height: 1.5; white-space: pre-wrap;">${order.items || 'No item details recorded'}</div>
                             </div>
-
                         </div>
 
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-top: 1px solid var(--border, #e2e8f0); padding-top: 12px;">
+                        <!-- ACTIONS FOOTER -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; border-top: 1px solid var(--border, #e2e8f0); padding-top: 15px;">
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <span style="font-size: 0.85rem; font-weight: 600; color: #64748b;">Status:</span>
                                 <select onchange="updateOrderStatus('${order.id}', this.value)" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border, #cbd5e1); font-weight: 600; font-size: 0.85rem; background: var(--card-bg, #fff); color: var(--text, #0f172a);">
@@ -313,13 +459,19 @@
                                     <option value="Ready" ${order.status === 'Ready' || order.status === 'Shipped' ? 'selected' : ''}>Ready / Dispatched</option>
                                     <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
                                     <option value="Complete" ${order.status === 'Complete' ? 'selected' : ''}>Complete</option>
+                                    <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
                                 </select>
                             </div>
 
-                            ${order.phone ? `
-                            <a href="https://wa.me/91${order.phone.replace(/[^0-9]/g, '').slice(-10)}?text=Hello%20${encodeURIComponent(order.name || '')},%20we%20received%20your%20order%20%23${order.id}!" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background: #25D366; color: white; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 700;">
-                                <span>💬 WhatsApp Customer</span>
-                            </a>` : ''}
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                ${order.phone ? `
+                                <a href="https://wa.me/91${order.phone.replace(/[^0-9]/g, '').slice(-10)}?text=Hello%20${encodeURIComponent(order.name || '')},%20regarding%20your%20order%20%23${order.id}..." target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background: #25D366; color: white; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 700;">
+                                    <span>💬 Chat</span>
+                                </a>` : ''}
+                                
+                                <button onclick="cancelOrder('${order.id}')" style="background: transparent; border: 1px solid #94a3b8; color: #475569; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Cancel</button>
+                                <button onclick="deleteOrder('${order.id}')" style="background: #ef4444; border: none; color: white; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Delete</button>
+                            </div>
                         </div>
 
                     </div>`;
@@ -330,6 +482,25 @@
         };
 
         window.updateOrderStatus = async (id, newStatus) => { try { await updateDoc(doc(db, "orders", id), { status: newStatus }); } catch(e) { alert("Failed to update status"); } };
+        
+        window.cancelOrder = async (id) => { 
+            if(confirm("Cancel this order? It will deduct from your revenue and notify the customer.")) { 
+                try { await updateDoc(doc(db, "orders", id), { status: "Cancelled" }); } catch(e) { alert("Action failed."); } 
+            } 
+        };
+
+        window.deleteOrder = async (id) => { 
+            if(confirm("Permanently delete this order from database? This cannot be undone.")) { 
+                try { await deleteDoc(doc(db, "orders", id)); } catch(e) { alert("Delete failed."); } 
+            } 
+        };
+
+        // ==========================================
+        // SETTINGS & OTHER ADMIN LOGIC
+        // ==========================================
+        window.loadCommunityVideos = async () => { onSnapshot(collection(db, "community_videos"), (snapshot) => { const tbody = document.getElementById('videos-table-body'); tbody.innerHTML = ''; snapshot.forEach(doc => { const v = doc.data(); tbody.innerHTML += `<tr><td>${v.title}</td><td><a href="${v.url}" target="_blank" style="color:var(--primary); font-size:0.8rem;">View Link</a></td><td><button class="action-btn delete-btn" onclick="deleteCommunityVideo('${doc.id}')">Remove</button></td></tr>`; }); }); };
+        window.addCommunityVideo = async () => { const title = document.getElementById('vid-title').value; const url = document.getElementById('vid-url').value; if(!url) return alert("URL is required"); try { await addDoc(collection(db, "community_videos"), { title, url }); document.getElementById('vid-title').value = ''; document.getElementById('vid-url').value = ''; } catch(e) { alert(e.message); } };
+        window.deleteCommunityVideo = async (id) => { if(confirm("Remove this reel?")) await deleteDoc(doc(db, "community_videos", id)); };
 
         window.loadPromos = async () => { onSnapshot(doc(db, "settings", "promos"), (docSnap) => { const tbody = document.getElementById('promos-table-body'); tbody.innerHTML = ''; if(docSnap.exists() && docSnap.data().codes) { docSnap.data().codes.forEach(c => { tbody.innerHTML += `<tr><td><b>${c.code}</b></td><td>₹${c.discount}</td><td>₹${c.minOrder}</td><td><button class="action-btn delete-btn" onclick="deletePromo('${c.code}')">Remove</button></td></tr>`; }); } }); };
         window.addPromo = async () => { const code = document.getElementById('promo-code').value.toUpperCase(); const discount = parseInt(document.getElementById('promo-discount').value); const minOrder = parseInt(document.getElementById('promo-min').value); if(!code || !discount) return alert("Code and Discount required."); try { await setDoc(doc(db, "settings", "promos"), { codes: arrayUnion({code, discount, minOrder: minOrder || 0}) }, { merge: true }); alert("Promo Added!"); } catch(e) { alert(e.message); } };
