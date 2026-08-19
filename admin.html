@@ -104,16 +104,16 @@
                     <hr style="border:0; border-top:1px solid var(--border); margin:25px 0;">
                     
                     <div class="form-group">
-                        <label>Add Offers / Bundles (Optional)</label>
-                        <p style="font-size:0.8rem; color:#666; margin-top:0;">E.g. Name: "Pack of 2", Price: "749". The base product price above is automatically saved as "Standard".</p>
+                        <label>Colors / Offers / Bundles (Optional)</label>
+                        <p style="font-size:0.8rem; color:#666; margin-top:0;">You can attach a specific photo to a color or pack. When clicked, the website will show that photo.</p>
                         <div id="variants-container"></div>
-                        <button type="button" class="cat-btn" style="border:1px dashed var(--primary); color:var(--primary); margin-top:10px;" onclick="addVariantRow()">+ Add Bundle Option</button>
+                        <button type="button" class="cat-btn" style="border:1px dashed var(--primary); color:var(--primary); margin-top:10px;" onclick="addVariantRow()">+ Add Color/Bundle Option</button>
                     </div>
 
                     <hr style="border:0; border-top:1px solid var(--border); margin:25px 0;">
 
                     <div class="form-group flex-row">
-                        <div style="flex: 2;"><label>Product Photos (Leave empty to keep existing images if editing)</label><input type="file" id="prod-images" multiple accept="image/*" onchange="previewImages(event)"><div id="image-preview-container"></div></div>
+                        <div style="flex: 2;"><label>Main Product Photos (Leave empty to keep existing images if editing)</label><input type="file" id="prod-images" multiple accept="image/*" onchange="previewImages(event)"><div id="image-preview-container"></div></div>
                         <div style="flex: 1;"><label>Video Link (Optional)</label><input type="text" id="prod-video" placeholder="YouTube or Direct Video URL"></div>
                     </div>
                     <div class="form-group"><label>Description</label><textarea id="prod-desc" rows="2" placeholder="Ergonomic memory foam..."></textarea></div>
@@ -262,9 +262,20 @@
             try { await updateDoc(doc(db, "products", id), { outOfStock: isOOS }); window.showToast("Stock status updated successfully"); } catch(e) { window.showToast("Failed to update stock status.", true); }
         };
 
+        // ✨ UPDATED: Variant Row now has an image upload option
         window.addVariantRow = () => {
             const container = document.getElementById('variants-container');
-            container.innerHTML += `<div class="flex-row variant-row" style="margin-top:10px;"><input type="text" placeholder="e.g. Pack of 2" class="v-name" style="flex:2; margin:0;"><input type="number" placeholder="Price (₹)" class="v-price" style="flex:1; margin:0;"><button class="action-btn delete-btn" onclick="this.parentElement.remove()">X</button></div>`;
+            container.innerHTML += `
+            <div class="flex-row variant-row" style="margin-top:10px; align-items:center; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid var(--border);">
+                <input type="text" placeholder="e.g. Blue colour" class="v-name" style="flex:2; margin:0;">
+                <input type="number" placeholder="Price (₹)" class="v-price" style="flex:1; margin:0;">
+                <label style="flex:1.5; font-size:0.75rem; color:#475569; cursor:pointer; background:#fff; padding:10px; border-radius:6px; border:1px dashed #cbd5e1; text-align:center; margin:0;">
+                    📷 <span class="v-img-label">Add Photo (Opt)</span>
+                    <input type="file" class="v-img" accept="image/*" style="display:none;" onchange="this.previousElementSibling.innerText = 'Photo Selected ✅'">
+                </label>
+                <input type="hidden" class="v-existing-img" value="">
+                <button class="action-btn delete-btn" onclick="this.parentElement.remove()" style="margin:0;">X</button>
+            </div>`;
         };
 
         window.saveProduct = async () => { 
@@ -278,18 +289,30 @@
             const fileInput = document.getElementById('prod-images'); 
             
             if(!name) return window.showToast("Error: Product Name is required.", true); 
-            
-            let variants = [];
-            document.querySelectorAll('.variant-row').forEach(row => {
-                const vName = row.querySelector('.v-name').value.trim();
-                const vPrice = parseInt(row.querySelector('.v-price').value);
-                if(vName && vPrice) variants.push({ name: vName, price: vPrice });
-            });
 
             const btn = document.getElementById('add-prod-btn'); const loader = document.getElementById('prod-loader'); 
             btn.disabled = true; loader.style.display = 'inline-block'; 
             
             try { 
+                // Process Variant Images
+                let variants = [];
+                let variantRows = document.querySelectorAll('.variant-row');
+                for(let row of variantRows) {
+                    const vName = row.querySelector('.v-name').value.trim();
+                    const vPrice = parseInt(row.querySelector('.v-price').value);
+                    const vFile = row.querySelector('.v-img').files[0];
+                    const vExisting = row.querySelector('.v-existing-img').value;
+
+                    if(vName && vPrice) {
+                        let vImageUrl = vExisting || null;
+                        if(vFile) {
+                            vImageUrl = await uploadFileToImgBB(vFile);
+                        }
+                        variants.push({ name: vName, price: vPrice, image: vImageUrl });
+                    }
+                }
+
+                // Process Main Product Images
                 let uploadedImages = []; 
                 if(fileInput.files.length > 0) {
                     for(let i=0; i < fileInput.files.length; i++) { 
@@ -309,7 +332,7 @@
                 } else {
                     if(uploadedImages.length === 0) {
                         btn.disabled = false; loader.style.display = 'none';
-                        return window.showToast("Error: Please upload at least one image.", true);
+                        return window.showToast("Error: Please upload at least one main image.", true);
                     }
                     productData.reviews = [];
                     await addDoc(collection(db, "products"), productData);
@@ -338,7 +361,18 @@
             document.getElementById('variants-container').innerHTML = '';
             if(p.variants) {
                 p.variants.forEach(v => {
-                    document.getElementById('variants-container').innerHTML += `<div class="flex-row variant-row" style="margin-top:10px;"><input type="text" value="${v.name}" class="v-name" style="flex:2; margin:0;"><input type="number" value="${v.price}" class="v-price" style="flex:1; margin:0;"><button class="action-btn delete-btn" onclick="this.parentElement.remove()">X</button></div>`;
+                    const imgLabel = v.image ? 'Photo Saved ✅' : 'Add Photo (Opt)';
+                    document.getElementById('variants-container').innerHTML += `
+                    <div class="flex-row variant-row" style="margin-top:10px; align-items:center; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid var(--border);">
+                        <input type="text" value="${v.name}" class="v-name" style="flex:2; margin:0;">
+                        <input type="number" value="${v.price}" class="v-price" style="flex:1; margin:0;">
+                        <label style="flex:1.5; font-size:0.75rem; color:#475569; cursor:pointer; background:#fff; padding:10px; border-radius:6px; border:1px dashed #cbd5e1; text-align:center; margin:0;">
+                            📷 <span class="v-img-label">${imgLabel}</span>
+                            <input type="file" class="v-img" accept="image/*" style="display:none;" onchange="this.previousElementSibling.innerText = 'Photo Selected ✅'">
+                        </label>
+                        <input type="hidden" class="v-existing-img" value="${v.image || ''}">
+                        <button class="action-btn delete-btn" onclick="this.parentElement.remove()" style="margin:0;">X</button>
+                    </div>`;
                 });
             }
 
