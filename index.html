@@ -6,6 +6,12 @@
     <link rel="icon" type="image/png" href="logo.png">
     <title>Karvi Komfy | Premium Travel Comfort</title>
     
+    <!-- PWA Links -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#C5A059">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
@@ -172,6 +178,8 @@
         .vid-card h3 { text-align: center; font-family: 'Playfair Display', serif; color: var(--text); margin: 0 0 20px 0; font-size: 1.3rem; font-weight: 400; font-style: italic;}
         .vid-iframe-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 16px; overflow: hidden; }
         .vid-iframe-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+        #pwa-install-prompt { position: fixed; bottom: -200px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: var(--card-bg); border: 1px solid var(--border); padding: 20px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); z-index: 9999; display: flex; flex-direction: column; gap: 15px; transition: bottom 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
 
         @media (max-width: 600px) {
             .h-logo { height: 45px; width: 45px; }
@@ -389,6 +397,21 @@
     <div id="policy-content" style="line-height: 1.9; color: #666; font-size: 0.95rem; font-family: 'Inter', sans-serif;"></div>
 </div>
 
+<!-- Storefront Install PWA Prompt -->
+<div id="pwa-install-prompt">
+    <div style="display:flex; align-items:center; gap:15px;">
+        <img src="logo.png" style="width:45px; height:45px; border-radius:50%; border: 1px solid var(--primary);">
+        <div>
+            <b style="font-family:'Playfair Display', serif; color:var(--text); font-size:1.1rem; display:block;">Karvi Komfy App</b>
+            <span style="font-size:0.75rem; color:#888; font-family:'Inter', sans-serif;">Add to Home Screen</span>
+        </div>
+    </div>
+    <div style="display:flex; gap:10px;">
+        <button onclick="closePWAPrompt()" style="flex:1; background:transparent; border:1px solid var(--border); border-radius:50px; padding:10px; color:var(--text); cursor:pointer; font-family:'Inter', sans-serif; font-size:0.8rem; text-transform:uppercase;">Not Now</button>
+        <button onclick="installPWA()" class="btn-buy" style="margin:0; padding:10px; font-size:0.8rem;">Install</button>
+    </div>
+</div>
+
 <a href="https://wa.me/919545335533?text=Hello%20Karvi%20Komfy!%20I%20have%20an%20inquiry." target="_blank" class="wa-float">
     <svg class="wa-icon" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.098.824z"/></svg>
     <span class="wa-text">Concierge</span>
@@ -409,6 +432,36 @@
         <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg><span>Bag</span>
     </div>
 </div>
+
+<script>
+    // Service Worker & PWA Logic
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
+
+    let pwaDeferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        pwaDeferredPrompt = e;
+        // 3 second delay before showing prompt
+        setTimeout(() => {
+            document.getElementById('pwa-install-prompt').style.bottom = '110px';
+        }, 3000);
+    });
+
+    window.installPWA = async () => {
+        if (pwaDeferredPrompt) {
+            pwaDeferredPrompt.prompt();
+            const { outcome } = await pwaDeferredPrompt.userChoice;
+            pwaDeferredPrompt = null;
+            closePWAPrompt();
+        }
+    };
+
+    window.closePWAPrompt = () => {
+        document.getElementById('pwa-install-prompt').style.bottom = '-200px';
+    };
+</script>
 
 <script type="text/javascript">
     function googleTranslateElementInit() { new google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'en,hi,mr,gu,ta,te', layout: google.translate.TranslateElement.InlineLayout.SIMPLE }, 'google_translate_element'); }
