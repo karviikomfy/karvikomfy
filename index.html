@@ -10,6 +10,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     
+    <!-- Razorpay Checkout SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
     <style>
         :root { 
             --primary: #C5A059;       
@@ -170,7 +173,6 @@
         .vid-iframe-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 16px; overflow: hidden; }
         .vid-iframe-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 
-        /* ✨ NEW: STRICT MOBILE RESPONSIVE OPTIMIZATIONS */
         @media (max-width: 600px) {
             .h-logo { height: 45px; width: 45px; }
             .h-text { font-size: 1.1rem; margin-left: 8px; }
@@ -192,7 +194,6 @@
             .p-price { font-size: 0.95rem; }
             .btn-cart, .btn-buy { font-size: 0.65rem; padding: 10px 0; letter-spacing: 1px;}
             
-            /* Tighter footer on mobile */
             #site-footer { padding: 30px 20px 90px 20px !important; }
             #site-footer h2 { font-size: 1.4rem; }
         }
@@ -223,7 +224,6 @@
         <input type="text" id="search-box" placeholder="Search our collection..." onkeyup="liveSearch()" style="margin: 0; width: 100%; border-radius: 50px; padding: 16px 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
         <div id="search-dropdown" style="display:none; position:absolute; top:65px; left:0; width:100%; background:var(--card-bg); z-index:1000; box-shadow:0 20px 50px rgba(0,0,0,0.1); border-radius:20px; max-height:300px; overflow-y:auto; border:1px solid var(--border);"></div>
     </div>
-    <!-- Removed justify-content: center; to allow smooth mobile scrolling from the edge -->
     <div id="dynamic-categories" style="display: flex; gap: 12px; overflow-x: auto; margin-top: 25px; padding-bottom: 5px; scrollbar-width: none; -webkit-overflow-scrolling: touch;"></div>
 </div>
     
@@ -341,7 +341,7 @@
                 <b style="font-size: 0.8rem; color: #888; display: block; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;">Payment Method</b>
                 <div style="display: flex; gap: 15px;">
                     <label style="flex: 1; border: 1px solid var(--border); padding: 18px 10px; border-radius: 16px; text-align: center; cursor: pointer; background: var(--bg); font-weight: 400; font-size: 0.85rem; transition: 0.4s; letter-spacing: 1px; text-transform: uppercase;">
-                        <input type="radio" name="pay_mode" value="prepaid" checked onchange="window.renderCart()" style="display:none;"> 💳 Online
+                        <input type="radio" name="pay_mode" value="prepaid" checked onchange="window.renderCart()" style="display:none;"> 💳 Online (UPI, Cards)
                     </label>
                     <label style="flex: 1; border: 1px solid var(--border); padding: 18px 10px; border-radius: 16px; text-align: center; cursor: pointer; background: var(--bg); font-weight: 400; font-size: 0.85rem; transition: 0.4s; letter-spacing: 1px; text-transform: uppercase;">
                         <input type="radio" name="pay_mode" value="cod" onchange="window.renderCart()" style="display:none;"> 💵 COD
@@ -423,6 +423,7 @@
     const firebaseConfig = { apiKey: "AIzaSyBw4wX5g8n314AYy1btlYxblfFNsO6tKQ0", authDomain: "karvikomfy-d4d0d.firebaseapp.com", projectId: "karvikomfy-d4d0d", storageBucket: "karvikomfy-d4d0d.firebasestorage.app", messagingSenderId: "28564797585", appId: "1:28564797585:web:9336b34b708fe6dc33e730" };
     const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app); const provider = new GoogleAuthProvider();
     const IMGBB_API_KEY = "18619d412a8e1e7a1dc960e350fafa3f";
+    const RAZORPAY_KEY_ID = "rzp_live_TRyMgVgT4QePxm";
 
     window.currentUser = null; let products = []; let cart = {}; window.currentModalProductId = null;
     window.currentSelectedVariant = null; 
@@ -916,13 +917,83 @@
         }
 
         try {
-            await addDoc(collection(db, "orders"), { uid: user.uid, name: name, phone: phone, address: addr, items: window.currentCartItemsString, total: window.finalCheckoutTotal, status: "Processing", payMode: "Prepaid", date: new Date().toISOString() });
+            const res = await fetch('/api/create-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: window.finalCheckoutTotal })
+            });
+            const rzpOrder = await res.json();
             
-            cart = {}; updateBadge(); appliedDiscount = 0; document.getElementById('cart-promo-input').value = ''; document.getElementById('order-form').reset(); window.renderCart();
-            
-            btn.innerText = "Order Successful!"; 
-            setTimeout(() => { btn.innerText = "Complete Purchase"; btn.disabled = false; window.activateNav(document.querySelectorAll('.nav-item')[1]); window.handleTabClick('orders'); }, 1500);
-        } catch (error) { btn.innerText = "Error. Try Again."; setTimeout(() => { btn.innerText = "Complete Purchase"; btn.disabled = false; }, 2500); }
+            if (!rzpOrder.id) throw new Error(rzpOrder.error || "Failed to create payment order.");
+
+            const rzpOptions = {
+                key: RAZORPAY_KEY_ID,
+                amount: rzpOrder.amount,
+                currency: "INR",
+                name: "Karvi Komfy",
+                description: "Premium Travel Support Checkout",
+                image: "logo.png",
+                order_id: rzpOrder.id,
+                prefill: {
+                    name: name,
+                    contact: phone,
+                    email: user.email || ""
+                },
+                theme: {
+                    color: "#C5A059"
+                },
+                handler: async function (response) {
+                    btn.innerText = "Verifying Payment...";
+                    try {
+                        await addDoc(collection(db, "orders"), { 
+                            uid: user.uid, 
+                            name: name, 
+                            phone: phone, 
+                            address: addr, 
+                            items: window.currentCartItemsString, 
+                            total: window.finalCheckoutTotal, 
+                            status: "Processing", 
+                            payMode: "Prepaid (Razorpay)", 
+                            paymentId: response.razorpay_payment_id,
+                            orderId: response.razorpay_order_id,
+                            date: new Date().toISOString() 
+                        });
+
+                        cart = {}; updateBadge(); appliedDiscount = 0; 
+                        document.getElementById('cart-promo-input').value = ''; 
+                        document.getElementById('order-form').reset(); 
+                        window.renderCart();
+
+                        btn.innerText = "Payment Successful!"; 
+                        setTimeout(() => { 
+                            btn.innerText = "Complete Purchase"; 
+                            btn.disabled = false; 
+                            window.activateNav(document.querySelectorAll('.nav-item')[1]); 
+                            window.handleTabClick('orders'); 
+                        }, 1500);
+
+                    } catch(err) {
+                        alert("Payment recorded, but error updating database: " + err.message);
+                        btn.disabled = false;
+                        btn.innerText = "Complete Purchase";
+                    }
+                },
+                modal: {
+                    ondismiss: function() {
+                        btn.disabled = false;
+                        btn.innerText = "Complete Purchase";
+                    }
+                }
+            };
+
+            const rzp = new Razorpay(rzpOptions);
+            rzp.open();
+
+        } catch (error) { 
+            alert("Error initiating Razorpay checkout: " + error.message); 
+            btn.innerText = "Complete Purchase"; 
+            btn.disabled = false; 
+        }
     };
 
     window.togglePlatformTheme = function() { const currentTheme = document.documentElement.getAttribute('data-theme'); const targetTheme = currentTheme === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', targetTheme); };
