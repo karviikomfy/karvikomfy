@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Karvi Komfy | Admin Control Panel</title>
+    
+    <!-- PWA Links -->
+    <link rel="manifest" href="admin-manifest.json">
+    <meta name="theme-color" content="#0F172A">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #D81B60; --primary-dark: #ad154d; --navy: #0F172A; --bg: #F8FAFC; --card-bg: #FFFFFF; --border: #E2E8F0; --text: #1E293B; }
@@ -41,6 +47,8 @@
         .preview-img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         select.status-drop { padding: 8px; border-radius: 6px; border: 1px solid var(--border); font-family: 'Inter', sans-serif; font-weight: 600; cursor: pointer; background: var(--bg); color: var(--text);}
         .cat-btn { background: transparent; color: var(--text); border: 1px solid var(--primary); padding: 8px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem; }
+        
+        #admin-install-prompt { position: fixed; bottom: -200px; right: 30px; width: 300px; z-index: 10000; box-shadow: 0 15px 40px rgba(0,0,0,0.2); transition: bottom 0.5s ease; }
     </style>
 </head>
 <body>
@@ -202,6 +210,46 @@
         </div>
     </div>
 
+    <!-- Admin Install PWA Prompt -->
+    <div id="admin-install-prompt" class="card">
+        <h3 style="margin-top:0; color:var(--primary); font-family:'Playfair Display', serif;">Install Admin App</h3>
+        <p style="font-size:0.85rem; color:#64748b; margin-top:0;">Add this control panel to your home screen for quick access and full-screen mode.</p>
+        <div style="display:flex; gap:10px; margin-top:15px;">
+            <button class="btn-submit" onclick="installAdminApp()" style="flex:1;">Install App</button>
+            <button class="action-btn" onclick="closeAdminPrompt()" style="background:#cbd5e1; color:#0f172a; padding:10px 15px;">Later</button>
+        </div>
+    </div>
+
+    <script>
+        // Service Worker & PWA Logic
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js');
+        }
+
+        let adminDeferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            adminDeferredPrompt = e;
+            // 3 second delay before showing prompt
+            setTimeout(() => {
+                document.getElementById('admin-install-prompt').style.bottom = '30px';
+            }, 3000);
+        });
+
+        window.installAdminApp = async () => {
+            if (adminDeferredPrompt) {
+                adminDeferredPrompt.prompt();
+                const { outcome } = await adminDeferredPrompt.userChoice;
+                adminDeferredPrompt = null;
+                closeAdminPrompt();
+            }
+        };
+
+        window.closeAdminPrompt = () => {
+            document.getElementById('admin-install-prompt').style.bottom = '-200px';
+        };
+    </script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, doc, setDoc, getDoc, updateDoc, deleteDoc, addDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -262,7 +310,6 @@
             try { await updateDoc(doc(db, "products", id), { outOfStock: isOOS }); window.showToast("Stock status updated successfully"); } catch(e) { window.showToast("Failed to update stock status.", true); }
         };
 
-        // ✨ UPDATED: Variant Row now has an image upload option
         window.addVariantRow = () => {
             const container = document.getElementById('variants-container');
             container.innerHTML += `
@@ -294,7 +341,6 @@
             btn.disabled = true; loader.style.display = 'inline-block'; 
             
             try { 
-                // Process Variant Images
                 let variants = [];
                 let variantRows = document.querySelectorAll('.variant-row');
                 for(let row of variantRows) {
@@ -312,7 +358,6 @@
                     }
                 }
 
-                // Process Main Product Images
                 let uploadedImages = []; 
                 if(fileInput.files.length > 0) {
                     for(let i=0; i < fileInput.files.length; i++) { 
@@ -437,7 +482,7 @@
                     const orderDate = order.date ? new Date(order.date).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A';
                     
                     let payBadgeColor = '#10B981'; 
-                    if(order.payMode === 'COD') payBadgeColor = '#F59E0B'; 
+                    if(order.payMode && order.payMode.includes('COD')) payBadgeColor = '#F59E0B'; 
                     if(order.status === 'Cancelled') payBadgeColor = '#ef4444'; 
 
                     html += `
