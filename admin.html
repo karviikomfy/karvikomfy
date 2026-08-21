@@ -257,7 +257,6 @@
         const firebaseConfig = { apiKey: "AIzaSyBw4wX5g8n314AYy1btlYxblfFNsO6tKQ0", authDomain: "karvikomfy-d4d0d.firebaseapp.com", projectId: "karvikomfy-d4d0d", storageBucket: "karvikomfy-d4d0d.firebasestorage.app", messagingSenderId: "28564797585", appId: "1:28564797585:web:9336b34b708fe6dc33e730" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app);
         
-        // ✨ UPDATED: Your brand new API Key
         const IMGBB_API_KEY = "3a1e10d3fd7c99ed809137cb0c29a10d";
 
         window.allProducts = [];
@@ -278,7 +277,27 @@
 
         window.previewImages = (event) => { const container = document.getElementById('image-preview-container'); container.innerHTML = ''; Array.from(event.target.files).forEach(file => { const reader = new FileReader(); reader.onload = (e) => { container.innerHTML += `<img src="${e.target.result}" class="preview-img">`; }; reader.readAsDataURL(file); }); };
 
-        async function uploadFileToImgBB(file) { const formData = new FormData(); formData.append('image', file); const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData }); const data = await res.json(); if(data.success) return data.data.url; throw new Error("Image upload failed"); }
+        // ✨ THE BASE64 UPLOAD FIX: Bypasses Android Chrome file formatting bugs
+        async function uploadFileToImgBB(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = async () => {
+                    try {
+                        const base64Image = reader.result.split(',')[1];
+                        const formData = new FormData();
+                        formData.append("image", base64Image);
+                        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+                        const data = await res.json();
+                        if(data.success) { resolve(data.data.url); } 
+                        else { reject(new Error(data.error ? data.error.message : "Upload rejected by ImgBB")); }
+                    } catch(e) {
+                        reject(new Error("Network error during upload"));
+                    }
+                };
+                reader.onerror = () => reject(new Error("Failed to read image file from phone"));
+            });
+        }
 
         window.loadProducts = async () => { 
             onSnapshot(collection(db, "products"), (snapshot) => { 
@@ -587,7 +606,21 @@
         };
         
         window.saveMarquee = async () => { const marqueeText = document.getElementById('set-marquee').value; try { await setDoc(doc(db, "settings", "store_config"), { marqueeText }, { merge: true }); window.showToast("Marquee updated successfully!"); } catch(e) { window.showToast(e.message, true); } };
-        window.addHeroBanner = async () => { const fileInput = document.getElementById('banner-file'); if(fileInput.files.length === 0) return window.showToast("Error: Select an image from gallery.", true); const btn = document.getElementById('add-banner-btn'); const loader = document.getElementById('banner-loader'); btn.disabled = true; loader.style.display = 'inline-block'; try { let url = await uploadFileToImgBB(fileInput.files[0]); await setDoc(doc(db, "settings", "store_config"), { heroBanners: arrayUnion(url) }, { merge: true }); fileInput.value = ''; window.showToast("Banner added successfully!");} catch(e) { window.showToast(e.message, true); } btn.disabled = false; loader.style.display = 'none'; };
+        
+        window.addHeroBanner = async () => { 
+            const fileInput = document.getElementById('banner-file'); 
+            if(fileInput.files.length === 0) return window.showToast("Error: Select an image from gallery.", true); 
+            const btn = document.getElementById('add-banner-btn'); const loader = document.getElementById('banner-loader'); 
+            btn.disabled = true; loader.style.display = 'inline-block'; 
+            try { 
+                let url = await uploadFileToImgBB(fileInput.files[0]); 
+                await setDoc(doc(db, "settings", "store_config"), { heroBanners: arrayUnion(url) }, { merge: true }); 
+                fileInput.value = ''; 
+                window.showToast("Banner added successfully!");
+            } catch(e) { window.showToast(e.message, true); } 
+            btn.disabled = false; loader.style.display = 'none'; 
+        };
+        
         window.deleteHeroBanner = async (url) => { if(confirm("Remove this banner?")) { try { await updateDoc(doc(db, "settings", "store_config"), { heroBanners: arrayRemove(url) }); window.showToast("Banner removed."); } catch(e) { window.showToast(e.message, true); } } };
     </script>
 </body>
