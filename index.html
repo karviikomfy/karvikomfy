@@ -475,7 +475,10 @@
 
     const firebaseConfig = { apiKey: "AIzaSyBw4wX5g8n314AYy1btlYxblfFNsO6tKQ0", authDomain: "karvikomfy-d4d0d.firebaseapp.com", projectId: "karvikomfy-d4d0d", storageBucket: "karvikomfy-d4d0d.firebasestorage.app", messagingSenderId: "28564797585", appId: "1:28564797585:web:9336b34b708fe6dc33e730" };
     const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app); const provider = new GoogleAuthProvider();
-    const IMGBB_API_KEY = "18619d412a8e1e7a1dc960e350fafa3f";
+    
+    // ✨ UPDATED: Your brand new API Key
+    const IMGBB_API_KEY = "3a1e10d3fd7c99ed809137cb0c29a10d";
+    
     const RAZORPAY_KEY_ID = "rzp_live_TRyMgVgT4QePxm";
 
     window.currentUser = null; let products = []; let cart = {}; window.currentModalProductId = null;
@@ -938,6 +941,7 @@
         document.getElementById('total').innerText = window.finalCheckoutTotal;
     }
 
+    // Razorpay Integration in Order Submission
     document.getElementById('order-form').onsubmit = async (e) => { 
         e.preventDefault(); 
         const btn = document.getElementById('checkout-btn');
@@ -969,6 +973,7 @@
             return;
         }
 
+        // Online Payment through Razorpay Serverless API
         try {
             const res = await fetch('/api/create-order', {
                 method: 'POST',
